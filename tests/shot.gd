@@ -59,6 +59,39 @@ func _ready() -> void:
 	player.global_position = Vector3(-20, 0.15, -1)
 	await get_tree().create_timer(1.0).timeout
 	await _snap("shot_cellar.png")
+	# ---- 任务书验收机位：南门→正厅路线 4 组同机位 ----
+	# 1. 天井远看正厅
+	player.global_position = Vector3(0, 0.15, 5.0)
+	player.rotation.y = 0.0
+	player.set("_pitch", 0.0)
+	if cam != null:
+		cam.rotation.x = 0.0
+	await get_tree().create_timer(1.0).timeout
+	await _snap("brief_1_courtyard_to_hall.png")
+	# 2. 门前伸手可及
+	player.global_position = Vector3(0, 0.15, -6.6)
+	player.rotation.y = 0.0
+	player.set("_pitch", -0.1)
+	if cam != null:
+		cam.rotation.x = -0.1
+	await get_tree().create_timer(0.8).timeout
+	await _snap("brief_2_door_closeup.png")
+	# 3. 正厅入口看供桌与纸人
+	player.global_position = Vector3(0, 0.15, -9.0)
+	player.rotation.y = 0.0
+	player.set("_pitch", -0.12)
+	if cam != null:
+		cam.rotation.x = -0.12
+	await get_tree().create_timer(0.8).timeout
+	await _snap("brief_3_hall_altar.png")
+	# 4. 近看油灯与纸人脸（站到纸人侧前方）
+	player.global_position = Vector3(-1.5, 0.15, -14.4)
+	player.rotation.y = -PI / 3.0
+	player.set("_pitch", -0.35)
+	if cam != null:
+		cam.rotation.x = -0.35
+	await get_tree().create_timer(0.8).timeout
+	await _snap("brief_4_lantern_face.png")
 	print("SHOTS DONE")
 	get_tree().quit(0)
 
