@@ -82,12 +82,14 @@ def build_pillar():
 def build_beam():
     p = Prop("SM_Beam")
     p.part("Beam", box(4, 0.24, 0.24, uv=2), "M_WoodDark", t=(0, 0, 0))
+    p.col((0, 0, 0), (4, 0.24, 0.24))
     return p
 
 def build_roof_seg():
     p = Prop("SM_RoofSeg")
     p.part("Slab", box(4.6, 0.12, 2.8, uv=2), "M_Tile", t=(0, 0, 0))
     p.part("Fascia", box(4.7, 0.18, 0.1), "M_WoodRed", t=(0, -0.05, 1.4))
+    p.col((0, 0, 0), (4.6, 0.12, 2.8))
     return p
 
 def build_floor_stone():
@@ -134,6 +136,7 @@ def build_window():
     p.part("Frame", box(1.24, 1.24, 0.1), "M_WoodRed", t=(0, 1.5, 0))
     p.part("Lattice", quad(1.1, 1.1, uv=1), "M_Lattice", t=(0, 1.5, 0.06))
     p.part("LatticeB", quad(1.1, 1.1, uv=1), "M_Lattice", t=(0, 1.5, -0.06), r=(0, 180, 0))
+    p.col((0, 1.5, 0), (1.24, 1.24, 0.12))
     return p
 
 def build_railing():
@@ -155,6 +158,7 @@ def build_plaque():
     p = Prop("SM_Plaque")
     p.part("Board", box(1.6, 0.5, 0.06), "M_Black", t=(0, 0, 0))
     p.part("Border", box(1.7, 0.6, 0.04), "M_WoodRed", t=(0, 0, -0.02))
+    p.col((0, 0, 0), (1.7, 0.6, 0.1))
     return p
 
 # ================================================================ 道具

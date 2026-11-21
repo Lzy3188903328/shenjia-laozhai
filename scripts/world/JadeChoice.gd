@@ -20,7 +20,7 @@ func _do_interact(_player: Node3D) -> void:
 	if not GameState.has_item("jade_pendant"):
 		var hud := get_tree().get_first_node_in_group("hud")
 		if hud != null and hud.has_method("toast"):
-			hud.toast("玉佩不在你身上。它还锁在闺房的妆奁里……去取回来。")
+			hud.toast("玉佩不在你身上。十年前她把玉佩锁进了闺房妆奁……去取回来还她。")
 		return
 	GameState.remove_item("jade_pendant")
 	GameState.set_flag("ending_done")

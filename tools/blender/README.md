@@ -1,9 +1,47 @@
-# Blender 端高模重制管线
+# Blender 端资产管线（对应《沈家老宅_3D资产重制任务书》）
 
-本目录是 **Blender + Godot 4 资产协作管线** 的 Blender 侧实现。当前游戏直接使用
-`tools/build_all.py`（纯 Python glTF 2.0 生成器）产出的 `.glb` 运行；当你安装了
-Blender 后，可用本管线产出**更高模数、带倒角与程序化脏迹材质**的同名资产，直接
-**热替换** `assets/kit/` 与 `assets/props/` 下的同名文件，无需改动任何 Godot 代码。
+本目录实现任务书的 Blender 侧交付。本机已配好 **Blender 4.2.3 LTS 便携版**：
+`tools/blender_portable/blender-4.2.3-windows-x64/blender.exe`（清华镜像下载，免安装）。
+
+## 三条可重复执行的管线
+
+### 1. 全量 .blend 源文件（50 个，任务书交付项①）
+把游戏内正在运行的 50 个同名 .glb 逐个导入 Blender，生成**可编辑源文件**，
+供美术在此基础上手工重制（保留节点名 / 枢轴 / 动画）：
+
+```bash
+blender.exe --background --python import_blend_src.py -- --in assets --out blender_src
+```
+
+产出：`blender_src/kit/*.blend`（12）+ `blender_src/props/*.blend`（38）+
+`blender_src/asset_manifest.json`（每资产的对象数/网格数/动画轨道清单，10 个带动画资产全部入档）。
+
+### 2. 原生高模批次（先做样板：任务书第二节）
+`build_kit.py` / `build_props.py` 以 bmesh+程序材质直接建模并导出高模 .glb
+（Blender 4.2 已验证通过，含程序化青苔/污渍材质图、门扇合页动画）：
+
+```bash
+blender.exe --background --python build_kit.py   -- --out blender_src/hd_kit    # 9 个建筑模块
+blender.exe --background --python build_props.py -- --out blender_src/hd_props   # 6 个样板道具
+```
+
+产出 `blender_src/hd_*/**.glb`（油灯/纸人/供桌/门/青砖墙/木地板样板已覆盖任务书验收路线）。
+
+### 3. 热替换回游戏
+验证过的 .glb 覆盖 `assets/kit|props/` 同名文件 → `Godot --headless --path . --import` →
+运行 `tests/asset_audit.tscn` 确认接口（节点/动画/碰撞）未破坏，再进游戏验收画面。
+
+## 接口合规审计
+
+`tests/asset_audit.tscn`（headless 可跑）对照任务书第六节接口表逐项机检：
+50 个 GLB 可加载、关键节点（DoorLeaf/Flame/Head/Face/Mirror/Incense×3/Ember×3/Clapper/Lid/SecretPart/Drawer/Curtain）、
+动画轨道（door_open/close、lantern_sway、turn_head、drawer_open、tablet_pickup、bell_ring、box_open、secretshelf_slide、bed_curtain_open）、
+门扇独立碰撞、建筑模块 -colonly 代理、运行时挂载一致性。当前 **97 项全部通过**。
+
+## Blender 4.2 API 适配记录
+- Principled BSDF 输出口名为 `BSDF`（非 "Base Color"）；程序材质图不得形成反馈环（glTF 导出器会递归爆栈）。
+- 污渍/青苔材质采用无环接法：Noise → Mix(A=底色, B=污渍色) → BaseColor。
+
 
 ## 使用方法
 

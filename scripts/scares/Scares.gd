@@ -88,19 +88,24 @@ func _window_flash(pos: Vector3) -> void:
 # ---------------------------------------------------------- MS-03 抽屉滚出纸人头
 func _drawer_head(pos: Vector3) -> void:
 	AudioMgr.play_at("drawer_roll", pos, -4.0)
-	var scene: PackedScene = load("res://assets/props/paper_head.glb")
-	if scene == null:
-		return
-	var head := scene.instantiate()
+	# 生成可拾取的纸人头（捡起后可 3D 检视内壁「第九头」朱砂线索）
+	var PickupScript := load("res://scripts/interact/Pickup.gd")
+	var head: StaticBody3D = PickupScript.new()
+	head.item_id = "paper_head"
+	head.prompt_text = "拾起 · 纸人头"
 	get_tree().current_scene.add_child(head)
 	head.global_position = pos + Vector3(0, 0.3, 0.2)
+	head.add_box_collision(Vector3(0.28, 0.28, 0.28))
+	var scene: PackedScene = load("res://assets/props/paper_head.glb")
+	if scene != null:
+		var inst := scene.instantiate()
+		inst.scale = Vector3.ONE * 0.9
+		head.add_child(inst)
 	var tw := head.create_tween()
-	tw.tween_property(head, "global_position", pos + Vector3(randf_range(-0.4, 0.4), 0.14, 0.7), 0.7)\
-		.set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+	tw.tween_property(head, "global_position", pos + Vector3(randf_range(-0.4, 0.4), 0.14, 0.7), 0.7).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 	tw.tween_callback(func() -> void:
 		AudioMgr.play_at("creak_wood", pos, -10.0, 1.3))
 
-# ---------------------------------------------------------- MS-07 供品下窜出死老鼠
 func _drawer_rat(pos: Vector3) -> void:
 	AudioMgr.play_at("rat_squeak", pos, -4.0)
 	var scene: PackedScene = load("res://assets/props/dead_rat.glb")

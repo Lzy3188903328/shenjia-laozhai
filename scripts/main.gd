@@ -124,7 +124,13 @@ func _wire_signals() -> void:
 	GameState.item_picked.connect(func(item_id: String) -> void:
 		hud.toast("拾得 · %s" % ItemDB.item_name(item_id))
 		if item_id == "jade_pendant":
-			GameState.set_objective("玉佩已寻回 · 查明此宅真相"))
+			GameState.set_objective("玉佩已寻回 · 查明此宅真相")
+			# 若已读过半张婚书：自动触发「玉佩 × 婚书」组合回忆
+			if GameState.docs.has("doc_12_wedding_half") and not GameState.get_flag("memory_jade_wedding"):
+				GameState.set_flag("memory_jade_wedding")
+				await get_tree().create_timer(2.2).timeout
+				hud.toast("玉佩背面的「清欢」与婚书残页并在一起——四月里她笑着等你，七月里她至死不肯闭上眼。（记忆闪回）")
+				effects.red_flash(1.8))
 	GameState.puzzle_solved.connect(_on_puzzle_solved)
 	GameState.doc_read.connect(_on_doc_read)
 	GameState.finale_started.connect(_start_finale)
@@ -147,7 +153,7 @@ func _start_game() -> void:
 	AudioMgr.stop_ambient()
 	await get_tree().create_timer(1.2).timeout
 	reader_ui.open_doc("doc_01_entrust")
-	hud.toast("雨越下越大。这封委托信，是三天前送到你铺子门口的。")
+	hud.toast("雨越下越大。今晚正是七月十五中元夜——这封委托信，是三天前送到你铺子门口的。")
 
 func _on_letter_closed() -> void:
 	## 合上文档后：开场方向提示 / 血书读完后的终局过渡（顺序：合上→恢复行动→3s 后追逐）
@@ -157,7 +163,7 @@ func _on_letter_closed() -> void:
 		GameState.set_flag("finale_pending", false)
 		# 此时阅读器已关闭、移动与鼠标已恢复
 		scares.run_scare_forced("flashback_fire", player.global_position)
-		hud.toast("血书上的手印是湿的——怨气开始苏醒。跑。")
+		hud.toast("「可敢认？」——血书上的血迹未干。怨气开始苏醒。跑。")
 		await get_tree().create_timer(3.0).timeout
 		GameState.start_finale()
 		return
@@ -238,14 +244,19 @@ func _on_doc_read(doc_id: String) -> void:
 	match doc_id:
 		"doc_06_contract":
 			scares.run_scare_forced("flashback_fire", player.global_position)
-			hud.toast("契约上的手印……和你掌心的烧疤，分毫不差。")
+			hud.toast("六月十九的契约上按着过火烙下的掌印……和你右手掌心的烧疤，分毫不差。")
 		"doc_04_diary_b":
 			effects.red_flash(1.2)
 			AudioMgr.play("sigh_woman", -8.0)
-			hud.toast("日记停在中元前夜。她等的那个「负心人」——")
+			hud.toast("日记停在中元前夜。第九尊男装替身……她早就知道你想替自己逃命了。")
 		"doc_12_wedding_half":
 			effects.red_flash(1.4)
 			hud.toast("婚书上的「阿」字……你叫阿九。")
+			if GameState.has_item("jade_pendant") and not GameState.get_flag("memory_jade_wedding"):
+				GameState.set_flag("memory_jade_wedding")
+				await get_tree().create_timer(2.2).timeout
+				hud.toast("玉佩背面的「清欢」与婚书残页并在一起——四月里她笑着等你，七月里她至死不肯闭上眼。（记忆闪回）")
+				effects.red_flash(1.8)
 		"doc_11_blood_contract":
 			# 首次拾取血书：先留在阅读器里读完；玩家合上后（_on_letter_closed）再启动过渡与追逐
 			GameState.set_flag("finale_pending")
@@ -270,7 +281,7 @@ func _start_finale() -> void:
 	])
 	bride.activate(wps)
 	GameState.set_objective("逃！把玉佩放回天井的牌位前 · 或夺门而出（南门）")
-	hud.toast("「灯莫灭，名莫应，门莫开。」——雾里传来急促的木屐声。")
+	hud.toast("「灯莫明，步莫急，南门绝，中庭还玉。」——雾里传来急促的木屐声。")
 
 # ---------------------------------------------------------- 死亡与重生
 func _on_player_died(_reason: String) -> void:
@@ -283,7 +294,7 @@ func _on_player_died(_reason: String) -> void:
 	bride.global_position = Vector3(0, 0, -2)
 	bride.active = true
 	bride.state = RedBride.State.PATROL
-	hud.toast("又被她追上了……记住：灯莫灭，名莫应。")
+	hud.toast("又被她追上了……记住：熄灯下蹲藏住身形，别在廊下狂奔！")
 
 # ---------------------------------------------------------- 全局输入
 func _unhandled_input(event: InputEvent) -> void:

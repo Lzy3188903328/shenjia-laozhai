@@ -44,8 +44,8 @@ def _new_mat(name, base, rough=0.75, metal=0.0, spec=0.3):
         bsdf.inputs["Specular IOR Level"].default_value = spec
     return m
 
-def _add_noise_grime(mat, color_a=(0.5, 0.5, 0.5, 1), scale=6.0, strength=0.35):
-    """程序化污渍/青苔：Noise Texture → ColorRamp → Mix 到 BaseColor"""
+def _add_noise_grime(mat, base=(0.3, 0.3, 0.3, 1), color_a=(0.5, 0.5, 0.5, 1), scale=6.0, strength=0.35):
+    """程序化污渍/青苔：Noise → Mix(A=原底色, B=污渍色, Factor=强度) → BaseColor（无环）"""
     nt = mat.node_tree
     bsdf = nt.nodes["Principled BSDF"]
     noise = nt.nodes.new("ShaderNodeTexNoise")
@@ -55,9 +55,10 @@ def _add_noise_grime(mat, color_a=(0.5, 0.5, 0.5, 1), scale=6.0, strength=0.35):
     ramp.color_ramp.elements[1].color = color_a
     mix = nt.nodes.new("ShaderNodeMix")
     mix.data_type = 'RGBA'
+    mix.blend_type = 'MIX'
+    mix.inputs["A"].default_value = base
     mix.inputs["Factor"].default_value = strength
     nt.links.new(noise.outputs["Fac"], ramp.inputs["Fac"])
-    nt.links.new(bsdf.outputs["Base Color"], mix.inputs["A"])
     nt.links.new(ramp.outputs["Color"], mix.inputs["B"])
     nt.links.new(mix.outputs["Result"], bsdf.inputs["Base Color"])
 
@@ -73,11 +74,11 @@ def make_materials():
         "M_Black":     _new_mat("M_Black", (0.02, 0.02, 0.02), 0.95),
     }
     # 青苔爬痕
-    _add_noise_grime(mats["M_Brick"], (0.16, 0.30, 0.14, 1), scale=5.0, strength=0.45)
-    _add_noise_grime(mats["M_Stone"], (0.14, 0.27, 0.12, 1), scale=4.0, strength=0.4)
-    _add_noise_grime(mats["M_Tile"], (0.13, 0.22, 0.11, 1), scale=6.0, strength=0.35)
+    _add_noise_grime(mats["M_Brick"], base=(0.30, 0.33, 0.30, 1), color_a=(0.16, 0.30, 0.14, 1), scale=5.0, strength=0.45)
+    _add_noise_grime(mats["M_Stone"], base=(0.30, 0.32, 0.31, 1), color_a=(0.14, 0.27, 0.12, 1), scale=4.0, strength=0.4)
+    _add_noise_grime(mats["M_Tile"], base=(0.14, 0.155, 0.17, 1), color_a=(0.13, 0.22, 0.11, 1), scale=6.0, strength=0.35)
     # 红漆斑驳
-    _add_noise_grime(mats["M_WoodRed"], (0.10, 0.06, 0.035, 1), scale=9.0, strength=0.55)
+    _add_noise_grime(mats["M_WoodRed"], base=(0.30, 0.045, 0.04, 1), color_a=(0.10, 0.06, 0.035, 1), scale=9.0, strength=0.55)
     return mats
 
 # ---------------------------------------------------------------- 建模工具

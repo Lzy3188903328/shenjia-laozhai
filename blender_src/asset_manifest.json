@@ -1,0 +1,373 @@
+[
+  {
+    "asset": "kit/beam.glb.glb",
+    "blend": "blender_src\\kit\\beam.blend",
+    "objects": 3,
+    "meshes": 2,
+    "animations": []
+  },
+  {
+    "asset": "kit/door.glb.glb",
+    "blend": "blender_src\\kit\\door.blend",
+    "objects": 13,
+    "meshes": 12,
+    "animations": [
+      "door_close_DoorLeaf",
+      "door_open_DoorLeaf"
+    ]
+  },
+  {
+    "asset": "kit/floor_stone.glb.glb",
+    "blend": "blender_src\\kit\\floor_stone.blend",
+    "objects": 3,
+    "meshes": 2,
+    "animations": []
+  },
+  {
+    "asset": "kit/floor_wood.glb.glb",
+    "blend": "blender_src\\kit\\floor_wood.blend",
+    "objects": 3,
+    "meshes": 2,
+    "animations": []
+  },
+  {
+    "asset": "kit/pillar.glb.glb",
+    "blend": "blender_src\\kit\\pillar.blend",
+    "objects": 5,
+    "meshes": 4,
+    "animations": []
+  },
+  {
+    "asset": "kit/plaque.glb.glb",
+    "blend": "blender_src\\kit\\plaque.blend",
+    "objects": 4,
+    "meshes": 3,
+    "animations": []
+  },
+  {
+    "asset": "kit/railing.glb.glb",
+    "blend": "blender_src\\kit\\railing.blend",
+    "objects": 10,
+    "meshes": 9,
+    "animations": []
+  },
+  {
+    "asset": "kit/roof_seg.glb.glb",
+    "blend": "blender_src\\kit\\roof_seg.blend",
+    "objects": 4,
+    "meshes": 3,
+    "animations": []
+  },
+  {
+    "asset": "kit/step.glb.glb",
+    "blend": "blender_src\\kit\\step.blend",
+    "objects": 3,
+    "meshes": 2,
+    "animations": []
+  },
+  {
+    "asset": "kit/wall_brick.glb.glb",
+    "blend": "blender_src\\kit\\wall_brick.blend",
+    "objects": 3,
+    "meshes": 2,
+    "animations": []
+  },
+  {
+    "asset": "kit/wall_wood.glb.glb",
+    "blend": "blender_src\\kit\\wall_wood.blend",
+    "objects": 11,
+    "meshes": 10,
+    "animations": []
+  },
+  {
+    "asset": "kit/window.glb.glb",
+    "blend": "blender_src\\kit\\window.blend",
+    "objects": 5,
+    "meshes": 4,
+    "animations": []
+  },
+  {
+    "asset": "props/altar_table.glb.glb",
+    "blend": "blender_src\\props\\altar_table.blend",
+    "objects": 12,
+    "meshes": 11,
+    "animations": [
+      "drawer_open_Drawer"
+    ]
+  },
+  {
+    "asset": "props/armchair.glb.glb",
+    "blend": "blender_src\\props\\armchair.blend",
+    "objects": 11,
+    "meshes": 10,
+    "animations": []
+  },
+  {
+    "asset": "props/bagua_lock.glb.glb",
+    "blend": "blender_src\\props\\bagua_lock.blend",
+    "objects": 14,
+    "meshes": 13,
+    "animations": []
+  },
+  {
+    "asset": "props/bamboo_stack.glb.glb",
+    "blend": "blender_src\\props\\bamboo_stack.blend",
+    "objects": 7,
+    "meshes": 6,
+    "animations": []
+  },
+  {
+    "asset": "props/bed.glb.glb",
+    "blend": "blender_src\\props\\bed.blend",
+    "objects": 22,
+    "meshes": 21,
+    "animations": [
+      "bed_curtain_open_Curtain"
+    ]
+  },
+  {
+    "asset": "props/blood_contract.glb.glb",
+    "blend": "blender_src\\props\\blood_contract.blend",
+    "objects": 3,
+    "meshes": 2,
+    "animations": []
+  },
+  {
+    "asset": "props/book_dark.glb.glb",
+    "blend": "blender_src\\props\\book_dark.blend",
+    "objects": 3,
+    "meshes": 2,
+    "animations": []
+  },
+  {
+    "asset": "props/book_red.glb.glb",
+    "blend": "blender_src\\props\\book_red.blend",
+    "objects": 3,
+    "meshes": 2,
+    "animations": []
+  },
+  {
+    "asset": "props/bookshelf.glb.glb",
+    "blend": "blender_src\\props\\bookshelf.blend",
+    "objects": 108,
+    "meshes": 106,
+    "animations": [
+      "secretshelf_slide_SecretPart"
+    ]
+  },
+  {
+    "asset": "props/bride_ghost.glb.glb",
+    "blend": "blender_src\\props\\bride_ghost.blend",
+    "objects": 10,
+    "meshes": 9,
+    "animations": []
+  },
+  {
+    "asset": "props/bronze_mirror.glb.glb",
+    "blend": "blender_src\\props\\bronze_mirror.blend",
+    "objects": 4,
+    "meshes": 3,
+    "animations": []
+  },
+  {
+    "asset": "props/candle.glb.glb",
+    "blend": "blender_src\\props\\candle.blend",
+    "objects": 5,
+    "meshes": 4,
+    "animations": []
+  },
+  {
+    "asset": "props/chair_wood.glb.glb",
+    "blend": "blender_src\\props\\chair_wood.blend",
+    "objects": 8,
+    "meshes": 7,
+    "animations": []
+  },
+  {
+    "asset": "props/cinnabar_pen.glb.glb",
+    "blend": "blender_src\\props\\cinnabar_pen.blend",
+    "objects": 4,
+    "meshes": 3,
+    "animations": []
+  },
+  {
+    "asset": "props/contract.glb.glb",
+    "blend": "blender_src\\props\\contract.blend",
+    "objects": 5,
+    "meshes": 4,
+    "animations": []
+  },
+  {
+    "asset": "props/copper_bell.glb.glb",
+    "blend": "blender_src\\props\\copper_bell.blend",
+    "objects": 4,
+    "meshes": 3,
+    "animations": [
+      "bell_ring_Clapper"
+    ]
+  },
+  {
+    "asset": "props/dead_rat.glb.glb",
+    "blend": "blender_src\\props\\dead_rat.blend",
+    "objects": 6,
+    "meshes": 5,
+    "animations": []
+  },
+  {
+    "asset": "props/desk_study.glb.glb",
+    "blend": "blender_src\\props\\desk_study.blend",
+    "objects": 8,
+    "meshes": 7,
+    "animations": []
+  },
+  {
+    "asset": "props/dresser.glb.glb",
+    "blend": "blender_src\\props\\dresser.blend",
+    "objects": 13,
+    "meshes": 12,
+    "animations": []
+  },
+  {
+    "asset": "props/fire_starter.glb.glb",
+    "blend": "blender_src\\props\\fire_starter.blend",
+    "objects": 4,
+    "meshes": 3,
+    "animations": []
+  },
+  {
+    "asset": "props/hand_lantern.glb.glb",
+    "blend": "blender_src\\props\\hand_lantern.blend",
+    "objects": 7,
+    "meshes": 6,
+    "animations": [
+      "lantern_sway_Flame"
+    ]
+  },
+  {
+    "asset": "props/hanging_lantern.glb.glb",
+    "blend": "blender_src\\props\\hanging_lantern.blend",
+    "objects": 6,
+    "meshes": 5,
+    "animations": [
+      "lantern_sway_Body"
+    ]
+  },
+  {
+    "asset": "props/incense_burner.glb.glb",
+    "blend": "blender_src\\props\\incense_burner.blend",
+    "objects": 11,
+    "meshes": 10,
+    "animations": []
+  },
+  {
+    "asset": "props/jade_pendant.glb.glb",
+    "blend": "blender_src\\props\\jade_pendant.blend",
+    "objects": 4,
+    "meshes": 3,
+    "animations": []
+  },
+  {
+    "asset": "props/jewelry_box.glb.glb",
+    "blend": "blender_src\\props\\jewelry_box.blend",
+    "objects": 4,
+    "meshes": 3,
+    "animations": [
+      "box_open_Lid"
+    ]
+  },
+  {
+    "asset": "props/letter.glb.glb",
+    "blend": "blender_src\\props\\letter.blend",
+    "objects": 4,
+    "meshes": 3,
+    "animations": []
+  },
+  {
+    "asset": "props/luopan.glb.glb",
+    "blend": "blender_src\\props\\luopan.blend",
+    "objects": 5,
+    "meshes": 4,
+    "animations": []
+  },
+  {
+    "asset": "props/mirror_stand.glb.glb",
+    "blend": "blender_src\\props\\mirror_stand.blend",
+    "objects": 7,
+    "meshes": 6,
+    "animations": []
+  },
+  {
+    "asset": "props/offering_plate.glb.glb",
+    "blend": "blender_src\\props\\offering_plate.blend",
+    "objects": 5,
+    "meshes": 4,
+    "animations": []
+  },
+  {
+    "asset": "props/paper_figure.glb.glb",
+    "blend": "blender_src\\props\\paper_figure.blend",
+    "objects": 10,
+    "meshes": 9,
+    "animations": [
+      "turn_head_Head"
+    ]
+  },
+  {
+    "asset": "props/paper_head.glb.glb",
+    "blend": "blender_src\\props\\paper_head.blend",
+    "objects": 3,
+    "meshes": 2,
+    "animations": []
+  },
+  {
+    "asset": "props/paste_pot.glb.glb",
+    "blend": "blender_src\\props\\paste_pot.blend",
+    "objects": 3,
+    "meshes": 2,
+    "animations": []
+  },
+  {
+    "asset": "props/red_shoes.glb.glb",
+    "blend": "blender_src\\props\\red_shoes.blend",
+    "objects": 5,
+    "meshes": 4,
+    "animations": []
+  },
+  {
+    "asset": "props/spirit_flag.glb.glb",
+    "blend": "blender_src\\props\\spirit_flag.blend",
+    "objects": 4,
+    "meshes": 3,
+    "animations": []
+  },
+  {
+    "asset": "props/stone_well.glb.glb",
+    "blend": "blender_src\\props\\stone_well.blend",
+    "objects": 13,
+    "meshes": 12,
+    "animations": []
+  },
+  {
+    "asset": "props/tablet.glb.glb",
+    "blend": "blender_src\\props\\tablet.blend",
+    "objects": 4,
+    "meshes": 3,
+    "animations": [
+      "tablet_pickup_Body"
+    ]
+  },
+  {
+    "asset": "props/tablet_rack.glb.glb",
+    "blend": "blender_src\\props\\tablet_rack.blend",
+    "objects": 11,
+    "meshes": 10,
+    "animations": []
+  },
+  {
+    "asset": "props/wedding_half.glb.glb",
+    "blend": "blender_src\\props\\wedding_half.blend",
+    "objects": 2,
+    "meshes": 1,
+    "animations": []
+  }
+]

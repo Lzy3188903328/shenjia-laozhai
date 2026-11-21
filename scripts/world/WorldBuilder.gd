@@ -443,7 +443,7 @@ func _build_shrine_hall() -> void:
 	blood.rotation.y = deg_to_rad(-90)
 	blood.add_box_collision(Vector3(0.15, 1.3, 1.5))
 	var blood_lb := Label3D.new()
-	blood_lb.text = "灯莫灭\n名莫应\n门莫开"
+	blood_lb.text = "灯莫明\n步莫急\n南门绝\n中庭还玉"
 	blood_lb.font_size = 90
 	blood_lb.pixel_size = 0.003
 	blood_lb.modulate = Color(0.42, 0.05, 0.03)
