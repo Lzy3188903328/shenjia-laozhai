@@ -1,0 +1,10 @@
+# Godot 4 缓存与导入产物（首次打开自动重建）
+.godot/
+
+# 系统文件
+Thumbs.db
+.DS_Store
+
+# 编辑器/工具临时文件
+*.tmp
+*.bak
