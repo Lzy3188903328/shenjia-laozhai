@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b05hsx1j5nhfs"
-path="res://.godot/imported/paper_figure_t_cloth_white.png-6b6b5e9b0ac05e26f9c8c406fb7bf874.ctex"
+path.s3tc="res://.godot/imported/paper_figure_t_cloth_white.png-6b6b5e9b0ac05e26f9c8c406fb7bf874.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "485e4c0177ac52e89517dc9f7fb6b140"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/props/paper_figure_t_cloth_white.png"
-dest_files=["res://.godot/imported/paper_figure_t_cloth_white.png-6b6b5e9b0ac05e26f9c8c406fb7bf874.ctex"]
+dest_files=["res://.godot/imported/paper_figure_t_cloth_white.png-6b6b5e9b0ac05e26f9c8c406fb7bf874.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

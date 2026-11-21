@@ -18,6 +18,7 @@ func _ready() -> void:
 	add_child(root)
 
 	_icon = InkIcon.new()
+	_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_icon.set_anchors_preset(Control.PRESET_CENTER)
 	_icon.position = Vector2(-22, -22)
 	_icon.custom_minimum_size = Vector2(44, 44)

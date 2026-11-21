@@ -70,6 +70,21 @@ func _ready() -> void:
 	_ok(Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED, "合信后视角捕获恢复")
 	var player: CharacterBody3D = main.get("player")
 	_ok(player.get("_input_locked") == false, "合信后移动解锁")
+	# 捕获鼠标后，移动事件的位置在准星中心。
+	var camera: Camera3D = player.get("camera")
+	var yaw_before := player.rotation.y
+	var pitch_before := camera.rotation.x
+	var motion := InputEventMouseMotion.new()
+	motion.position = get_viewport().get_visible_rect().get_center()
+	motion.global_position = motion.position
+	motion.relative = Vector2(35, 12)
+	motion.screen_relative = motion.relative
+	get_viewport().push_input(motion, true)
+	_ok(absf(player.rotation.y - yaw_before) > 0.01 and absf(camera.rotation.x - pitch_before) > 0.01,
+		"准星中心的鼠标移动能转动视角")
+	player.rotation.y = yaw_before
+	player.set("_pitch", pitch_before)
+	camera.rotation.x = pitch_before
 	# 3. 终局南门：剧情阶段置为终局后，正面按 E 触发伪结局
 	GameState.set_flag("finale_pending", false)
 	var wb: WorldBuilder = main.get("world_builder")

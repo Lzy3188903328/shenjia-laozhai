@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b0cl4xs0eg8hk"
-path="res://.godot/imported/paper_head_t_cloth_white.png-b062b49cc9495ffce35fe502630749a8.ctex"
+path.s3tc="res://.godot/imported/paper_head_t_cloth_white.png-b062b49cc9495ffce35fe502630749a8.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "485e4c0177ac52e89517dc9f7fb6b140"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/props/paper_head_t_cloth_white.png"
-dest_files=["res://.godot/imported/paper_head_t_cloth_white.png-b062b49cc9495ffce35fe502630749a8.ctex"]
+dest_files=["res://.godot/imported/paper_head_t_cloth_white.png-b062b49cc9495ffce35fe502630749a8.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0
