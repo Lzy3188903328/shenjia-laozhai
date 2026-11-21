@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://do1h3muj55sgo"
-path="res://.godot/imported/paper_figure_t_face_noeye.png-1c275c0a31196f62e3a51badd3698d8e.ctex"
+path.s3tc="res://.godot/imported/paper_figure_t_face_noeye.png-1c275c0a31196f62e3a51badd3698d8e.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "b0f1c60b9d9a24a522ad521a11080a0f"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets_hd/props/paper_figure_t_face_noeye.png"
-dest_files=["res://.godot/imported/paper_figure_t_face_noeye.png-1c275c0a31196f62e3a51badd3698d8e.ctex"]
+dest_files=["res://.godot/imported/paper_figure_t_face_noeye.png-1c275c0a31196f62e3a51badd3698d8e.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

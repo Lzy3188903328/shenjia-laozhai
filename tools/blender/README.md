@@ -1,7 +1,19 @@
 # Blender 端资产管线（对应《沈家老宅_3D资产重制任务书》）
 
-本目录实现任务书的 Blender 侧交付。本机已配好 **Blender 4.2.3 LTS 便携版**：
-`tools/blender_portable/blender-4.2.3-windows-x64/blender.exe`（清华镜像下载，免安装）。
+本目录实现任务书的 Blender 侧交付。使用 Blender 4.2.3 LTS 验证了导入及保存。
+
+## 游戏内当前模型
+
+运行时从 `assets/kit/` 和 `assets/props/` 读取模型。`assets_hd/` 是上一批几何升级的输入。当前批次重做了两类灯笼、纸人、纸人头和红衣鬼影，并为建筑和道具增加了各自的结构及材质细节。
+
+在项目根目录执行，先将资产导出到单独的目录。生成器需要 NumPy 和 Pillow。
+
+```sh
+python tools/refine_models.py --output ../shenjia-art-preview
+blender --background --python tools/blender/import_blend_src.py -- --in ../shenjia-art-preview --out ../shenjia-blend-preview
+```
+
+正式版可编辑文件在 `blender_src/kit/` 与 `blender_src/props/`。清单中的 `blend` 路径相对于清单所在目录。替换 GLB 后在 Godot 查看实际画面，并验证资产审计和交互回归。本批次的验收截图见 `docs/screenshots/art_pass/`。
 
 ## 三条可重复执行的管线
 

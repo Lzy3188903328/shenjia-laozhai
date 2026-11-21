@@ -62,16 +62,12 @@ def main():
                     for s in tc.strips:
                         anims.add(s.action.name if s.action else "")
             anims.discard("")
-            # 根对象命名
-            roots = [o for o in objs if o.parent is None]
-            for r in roots:
-                r.name = name
             blend_path = os.path.abspath(os.path.join(out, sub, name + ".blend"))
             os.makedirs(os.path.dirname(blend_path), exist_ok=True)
             save_blend(blend_path)
             manifest.append({
                 "asset": "%s/%s.glb" % (sub, f),
-                "blend": os.path.relpath(blend_path),
+                "blend": os.path.relpath(blend_path, out).replace(os.sep, "/"),
                 "objects": len(objs),
                 "meshes": len(meshes),
                 "animations": sorted(a for a in anims if "Armature" not in a),

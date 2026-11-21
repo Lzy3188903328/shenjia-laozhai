@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://606ro4xx64xu"
-path="res://.godot/imported/door_t_wood_dark.png-a412521ca477f50d0e56efbdb593e5be.ctex"
+path.s3tc="res://.godot/imported/door_t_wood_dark.png-a412521ca477f50d0e56efbdb593e5be.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "3715cedb3982002c2aa05b9bf04041a5"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets_backup/door_t_wood_dark.png"
-dest_files=["res://.godot/imported/door_t_wood_dark.png-a412521ca477f50d0e56efbdb593e5be.ctex"]
+dest_files=["res://.godot/imported/door_t_wood_dark.png-a412521ca477f50d0e56efbdb593e5be.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

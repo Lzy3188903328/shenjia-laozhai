@@ -56,16 +56,16 @@ func _true_ending() -> void:
 	AudioMgr.stop_chase_music()
 	AudioMgr.play_ending_music()
 	await _fade(1.0, 1.6)
-	_label.text = "你把玉佩轻轻放回牌位前。\n雨声停了。"
+	_label.text = "你把玉佩轻轻放回牌位前。\n砸了十年的暴雨，停了。"
 	await _fade(0.0, 1.4)
 	await _wait(1.2)
-	_label.text = "灯笼一盏一盏，安静地暗下去。\n雾里那个红衣的身影，俯身拾起玉佩，\n朝你深深一拜。"
+	_label.text = "回廊的灯笼一盏一盏，安静地暗下去。\n雾里那个穿红嫁衣的身影走到井边停住，\n俯身拾起那枚玉佩，隔着烟雨，朝你深深一拜。"
 	await _fade(0.0, 0.1)
 	await _wait(3.6)
 	_label.text = ""
 	await _fade(1.0, 1.2, Color(0.92, 0.9, 0.84))
 	await _wait(1.0)
-	_label.text = "【真结局 · 了结】\n\n十年恩怨，一拜而终。\n走出山门时，天已经亮了。\n你把那半枚鞋扣埋在了村口的老槐树下。\n从此再没有人请你扎纸人——\n苏城的阿九纸扎铺，关门了。"
+	_label.text = "【真结局 · 了结】\n\n贪怯过，欺骗过，也曾在火场里松开过手。\n这一次，你没有再跑。\n十年恩怨，一拜而终。走出山门时，天已经亮了。\n你把那半枚鞋扣埋在了村口的老槐树下。\n从此苏城再没有人请你扎纸人——\n阿九纸扎铺，关门了。"
 	_label.add_theme_font_size_override("font_size", 26)
 	await _fade(0.0, 1.6, Color(0.92, 0.9, 0.84))
 	_sub.text = "——《沈家老宅》 谢谢游玩 · 按 Esc 退出"
@@ -74,15 +74,15 @@ func _true_ending() -> void:
 func _false_ending() -> void:
 	AudioMgr.stop_chase_music()
 	await _fade(1.0, 0.8)
-	_label.text = "你冲出大门——"
+	_label.text = "你攥紧玉佩撞开南门——"
 	await _wait(1.4)
 	AudioMgr.play("suona_long", -4.0)
-	_label.text = "门外没有村子。\n门外是十年前的那个雨夜。\n唢呐声里，祠堂的火光冲天而起，\n而你的手里，还攥着那枚不属于你的玉佩。"
+	_label.text = "门外没有山道，也没有村子。\n迎面泼来的，仍是十年前中元夜那场大雨。\n唢呐声里，身后祠堂的火光再一次冲天而起，\n廊檐横梁在头顶轰然坠落——而你的手里，还攥着半枚沾泥的鞋扣。"
 	await _fade(0.0, 1.0)
 	await _wait(3.8)
 	_label.text = ""
 	await _fade(1.0, 1.0)
-	_label.text = "【伪结局 · 长夜】\n\n因果未了。\n雨还会下十年。\n\n（把玉佩还回去吧——她还在等。）"
+	_label.text = "【伪结局 · 长夜】\n\n逃过一次，还要再逃一次吗？\n因果未了，火就不会熄，雨还会下十年。\n\n（把玉佩还回去吧——她还在井边等。）"
 	_label.add_theme_font_size_override("font_size", 26)
 	await _fade(0.0, 1.6)
 	_sub.text = "——《沈家老宅》 谢谢游玩 · 按 Esc 退出"

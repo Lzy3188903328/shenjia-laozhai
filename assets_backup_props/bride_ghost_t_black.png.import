@@ -2,23 +2,21 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://byeayvao11vuj"
-path="res://.godot/imported/bride_ghost_t_black.png-0c6f7f577ad307779e01be74dd0fb92d.ctex"
+uid="uid://uuylbwexfq4c"
+path.s3tc="res://.godot/imported/bride_ghost_t_black.png-0c6f7f577ad307779e01be74dd0fb92d.s3tc.ctex"
 metadata={
-"vram_texture": false
-}
-generator_parameters={
-"md5": "3e2861c39e6e76aa94354326811289a2"
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets_backup_props/bride_ghost_t_black.png"
-dest_files=["res://.godot/imported/bride_ghost_t_black.png-0c6f7f577ad307779e01be74dd0fb92d.ctex"]
+dest_files=["res://.godot/imported/bride_ghost_t_black.png-0c6f7f577ad307779e01be74dd0fb92d.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +38,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0
