@@ -13,11 +13,14 @@ var reader_ui: ReaderUI
 var pause_ui: PauseUI
 var endings_ui: Endings
 var bell_ui: BellUI
+var mend_ui: MendUI
+var window_paper_ui: WindowPaperUI
 var scares: Scares
 var rain: RainField
 var env: Environment
 
 var _game_started := false
+var _ending_active := false
 var _region := ""
 
 # 环境音区域矩形
@@ -30,6 +33,7 @@ const VISIT_HINTS := {
 	"shrine": [Rect2(-5, -25, 10, 8), "祠堂。族谱就摆在供桌上——考在左、妣在右，殇女居下层。"],
 	"boudoir": [Rect2(8, -6, 8, 8), "闺房。妆奁盒上有一把八卦锁——解法应在道士手札里。"],
 	"workshop": [Rect2(-16, -6, 8, 8), "扎纸作坊。账本边缘写着「扎纸三忌」——点睛、香序、铃时辰。"],
+	"mirrorroom": [Rect2(6, -14, 5, 5.5), "烛光落在第一面铜镜边上，沿光路看看。"],
 }
 var _visited := {}
 
@@ -118,26 +122,40 @@ func _build_ui() -> void:
 	add_child(endings_ui)
 	bell_ui = BellUI.new()
 	add_child(bell_ui)
+	mend_ui = MendUI.new()
+	add_child(mend_ui)
+	window_paper_ui = WindowPaperUI.new()
+	add_child(window_paper_ui)
 	effects.set_fade_black(1.0)
 
 func _wire_signals() -> void:
-	GameState.item_picked.connect(func(item_id: String) -> void:
-		hud.toast("拾得 · %s" % ItemDB.item_name(item_id))
-		if item_id == "jade_pendant":
-			GameState.set_objective("玉佩已寻回 · 查明此宅真相")
-			# 若已读过半张婚书：自动触发「玉佩 × 婚书」组合回忆
-			if GameState.docs.has("doc_12_wedding_half") and not GameState.get_flag("memory_jade_wedding"):
-				GameState.set_flag("memory_jade_wedding")
-				await get_tree().create_timer(2.2).timeout
-				hud.toast("玉佩背面的「清欢」与婚书残页并在一起——四月里她笑着等你，七月里她至死不肯闭上眼。（记忆闪回）")
-				effects.red_flash(1.8))
+	GameState.item_picked.connect(_on_item_picked)
 	GameState.puzzle_solved.connect(_on_puzzle_solved)
 	GameState.doc_read.connect(_on_doc_read)
 	GameState.finale_started.connect(_start_finale)
 	GameState.player_died.connect(_on_player_died)
-	GameState.ending_reached.connect(func(ending_id: String) -> void:
-		endings_ui.play_ending(ending_id))
+	GameState.ending_reached.connect(_on_ending_reached)
 	reader_ui.closed.connect(_on_letter_closed)
+
+func _on_ending_reached(ending_id: String) -> void:
+	## 结局演出独占输入：一次性保护 → 锁输入清速度 → 归拢普通 UI → 播结局
+	if _ending_active:
+		return
+	_ending_active = true
+	player.lock_input(true)
+	player.velocity = Vector3.ZERO
+	if inventory_ui.visible:
+		inventory_ui.close()
+	if reader_ui.visible:
+		reader_ui.close()
+	if inspect_ui.visible:
+		inspect_ui.close()
+	if bell_ui.visible:
+		bell_ui.close()
+	if pause_ui.visible:
+		pause_ui.close()
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)   # 鼠标状态由结局在 UI 收拢后决定
+	endings_ui.play_ending(ending_id)
 
 # ---------------------------------------------------------- 开场
 func _start_game() -> void:
@@ -199,6 +217,34 @@ func _process(_delta: float) -> void:
 		rain.set_follow(pos)
 
 # ---------------------------------------------------------- 谜题连锁反应
+func _refresh_objective() -> void:
+	## 任务栏优先级链（主线通关修复实施文档 §三）：按当前进度指向下一处地点
+	if GameState.get_flag("finale") or _ending_active:
+		return   # 追逐/结局阶段沿用现有终局目标
+	if GameState.get_flag("puzzle_ritual"):
+		GameState.set_objective("书架后有风 · 探寻密道")
+	elif GameState.has_item("cinnabar_pen"):
+		GameState.set_objective("朱砂笔已到手 · 去扎纸作坊")
+	elif GameState.get_flag("puzzle_mirror"):
+		GameState.set_objective("屏风后有暗龛 · 取出朱砂笔")
+	elif GameState.has_item("jade_pendant"):
+		GameState.set_objective("玉佩已寻回 · 去正厅东侧的花厅查看铜镜")
+	elif GameState.get_flag("puzzle_bagua"):
+		GameState.set_objective("妆奁已开启 · 取出玉佩")
+	elif GameState.get_flag("puzzle_tablets"):
+		GameState.set_objective("闺房 · 妆奁盒上的八卦锁")
+
+func _on_item_picked(item_id: String) -> void:
+	hud.toast("拾得 · %s" % ItemDB.item_name(item_id))
+	_refresh_objective()   # 任务链按优先级保留较后进度的有效目标
+	if item_id == "jade_pendant":
+		# 若已读过半张婚书：自动触发「玉佩 × 婚书」组合回忆
+		if GameState.docs.has("doc_12_wedding_half") and not GameState.get_flag("memory_jade_wedding"):
+			GameState.set_flag("memory_jade_wedding")
+			await get_tree().create_timer(2.2).timeout
+			hud.toast("玉佩背面的「清欢」与婚书残页并在一起——四月里她笑着等你，七月里她至死不肯闭上眼。（记忆闪回）")
+			effects.red_flash(1.8)
+
 func _on_puzzle_solved(puzzle_id: String) -> void:
 	match puzzle_id:
 		"tablets":
@@ -218,11 +264,11 @@ func _on_puzzle_solved(puzzle_id: String) -> void:
 			if shoes_scene != null:
 				var sinst := shoes_scene.instantiate()
 				shoes.add_child(sinst)
-			GameState.set_objective("闺房的妆奁盒上有八卦锁")
+			GameState.set_objective("闺房 · 妆奁盒上的八卦锁")
 		"mirror":
 			# 屏风后暗龛现出朱砂笔（谜题三产出，仪式所需）
-			var PickupScript := load("res://scripts/interact/Pickup.gd")
-			var pen: Pickup = PickupScript.new()
+			var PickupScriptM := load("res://scripts/interact/Pickup.gd")
+			var pen: Pickup = PickupScriptM.new()
 			pen.item_id = "cinnabar_pen"
 			add_child(pen)
 			pen.global_position = Vector3(6.6, 0.75, -9.3)
@@ -232,10 +278,10 @@ func _on_puzzle_solved(puzzle_id: String) -> void:
 				var inst := pen_scene.instantiate()
 				inst.scale = Vector3.ONE * 1.5
 				pen.add_child(inst)
-			var pedestal := world_builder._place_prop("chair_wood", Vector3(6.6, 0, -9.3), 0)
-			GameState.set_objective("朱砂笔已到手 · 去扎纸作坊完成仪式")
+			world_builder._place_prop("chair_wood", Vector3(6.6, 0, -9.3), 0)
+			_refresh_objective()
 		"ritual":
-			GameState.set_objective("书架后有风 · 探寻密道")
+			_refresh_objective()
 		"bagua":
 			pass  # 妆奁盒脚本自行处理
 
@@ -285,6 +331,8 @@ func _start_finale() -> void:
 
 # ---------------------------------------------------------- 死亡与重生
 func _on_player_died(_reason: String) -> void:
+	if _ending_active:
+		return   # 结局已启动：不再接管角色位置与追逐状态
 	await get_tree().create_timer(2.2).timeout
 	player.global_position = player.get_meta("respawn_pos", Vector3(-17.5, 0.15, -1.0))
 	player.velocity = Vector3.ZERO
@@ -298,13 +346,13 @@ func _on_player_died(_reason: String) -> void:
 
 # ---------------------------------------------------------- 全局输入
 func _unhandled_input(event: InputEvent) -> void:
-	if not _game_started:
+	if not _game_started or _ending_active:
 		return
 	if player != null and player.get("_input_locked"):
 		return   # 主菜单/开场过渡/阅读器期间锁住全局 UI 快捷键
 	if reader_ui.visible or inventory_ui.visible or inspect_ui.visible or pause_ui.visible:
 		return
-	if bell_ui.visible:
+	if bell_ui.visible or mend_ui.visible or window_paper_ui.visible:
 		return
 	if event.is_action_pressed("inventory"):
 		inventory_ui.open()

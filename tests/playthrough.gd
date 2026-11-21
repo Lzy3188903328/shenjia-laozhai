@@ -50,7 +50,7 @@ func _ready() -> void:
 	var drawer: Drawer = wb.find_child("HallAltarDrawer", true, false)
 	_ok(not drawer.locked, "供桌暗格已解锁")
 	drawer._do_interact(null)
-	await get_tree().create_timer(0.7).timeout
+	await get_tree().create_timer(1.2).timeout   # 抽屉动画(0.75s)到位后生成手札
 	var note := _find_pickup_doc("doc_07_daoshi_notes")
 	_ok(note != null, "手札已生成于暗格")
 	if note != null:

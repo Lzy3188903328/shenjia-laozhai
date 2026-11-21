@@ -23,19 +23,29 @@ func _attach_to_leaf() -> void:
 	var root := get_parent()
 	if root == null:
 		return
-	var leaf := root.find_child("DoorLeaf", true, false) as Node3D
-	if leaf == null:
-		push_warning("Door: 未找到 DoorLeaf 节点：" + name)
+	# 按类型区分门扇网格与门扇碰撞体（兼容两种布局：
+	# 旧管线 colonly 是网格子节点；Blender 重制版是平级兄弟节点）
+	var leaf_mesh: Node3D = null
+	var leaf_static: StaticBody3D = null
+	for n in root.find_children("*", "", true, false):
+		var nm := String(n.name)
+		if not nm.begins_with("DoorLeaf"):
+			continue
+		if n is StaticBody3D:
+			if leaf_static == null:
+				leaf_static = n
+		elif n is MeshInstance3D:
+			if leaf_mesh == null:
+				leaf_mesh = n
+	if leaf_mesh == null:
+		push_warning("Door: 未找到 DoorLeaf 网格：" + name)
 		return
 	var xform := global_transform
 	root.remove_child(self)
-	leaf.add_child(self)
+	leaf_mesh.add_child(self)
 	global_transform = xform
 	_attached = true
-	for body in leaf.find_children("*", "StaticBody3D", true, false):
-		if body != self:
-			_leaf_col = body
-			break
+	_leaf_col = leaf_static
 
 func _get_anim() -> AnimationPlayer:
 	if _anim != null and is_instance_valid(_anim):

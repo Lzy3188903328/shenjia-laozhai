@@ -116,6 +116,7 @@ func _ready() -> void:
 	_ok(mr.mirror_yaw[0] == -45.0, "M1 转到正确解 -45°")
 	_ok(mr._reveal_label.visible, "屏风显字「十九」")
 	_ok(GameState.get_flag("puzzle_mirror"), "铜镜谜题解开")
+	_ok(GameState.objective == "屏风后有暗龛 · 取出朱砂笔", "任务栏指向屏风暗龛")
 	var pen := _find_pickup_item("cinnabar_pen")
 	_ok(pen != null, "朱砂笔在屏风后生成")
 	player.global_position = Vector3(7.4, 0.15, -9.3)
@@ -127,6 +128,7 @@ func _ready() -> void:
 	_press_key(KEY_E)
 	await _wait(0.4)
 	_ok(GameState.has_item("cinnabar_pen"), "E 拾取朱砂笔")
+	_ok(GameState.objective == "朱砂笔已到手 · 去扎纸作坊", "任务栏指向扎纸作坊")
 
 	# ---------------- 6. 拾火折子 ----------------
 	print("[6 火折子]")
@@ -236,6 +238,38 @@ func _ready() -> void:
 	Input.action_release("move_forward")
 	_ok(player.global_position.x < -16.5, "穿过暗门进入密室 x=%.2f" % player.global_position.x)
 
+	# ---------------- 12d. 补扎替身（桌面近景输入） ----------------
+	print("[12d 补扎替身]")
+	player.global_position = Vector3(-13.2, 0.15, 0.4)
+	player.rotation.y = PI          # 面南朝侧桌
+	player.set("_pitch", -0.72)
+	if cam != null:
+		cam.rotation.x = -0.5
+	await _wait(0.4)
+	_press_key(KEY_E)
+	await _wait(0.4)
+	var mend_ui: MendUI = main.get("mend_ui")
+	_ok(mend_ui.visible, "E 打开补扎桌面近景")
+	await _click_mend_slot("L")
+	await _click_mend_slot("R")
+	await _click_mend_slot("hole_lo")
+	var mend_btn := _find_button(mend_ui._panel, "收 紧")
+	print("  dbg mend_btn=", mend_btn, " rect=", mend_btn.get_global_rect() if mend_btn != null else "null",
+		" disabled=", mend_btn.disabled if mend_btn != null else "-",
+		" visible=", mend_btn.is_visible_in_tree() if mend_btn != null else "-")
+	await _click_button(mend_btn)
+	await _wait(0.3)
+	_ok(GameState.get_flag("mend_done"), "左衽压襟 + 下孔收紧 → 胸架已补")
+	_ok(GameState.docs.has("doc_13_mend_note"), "发现记入线索册")
+	var inner_btn := _find_button(mend_ui._panel, "翻 开 内 襟")
+	await _click_button(inner_btn)
+	await _wait(0.3)
+	_ok(mend_ui._inner_open, "翻开内襟可见「自用」墨字")
+	var close_mend := _find_button(mend_ui._panel, "离 开 桌 案")
+	await _click_button(close_mend)
+	await _wait(0.3)
+	_ok(not mend_ui.visible and not get_tree().paused, "退出近景恢复游戏（保留已做步骤）")
+
 	# ---------------- 11. 血书时序：读完才追逐 ----------------
 	print("[11 血书时序]")
 	player.global_position = Vector3(-20, 0.15, -2.4)
@@ -256,7 +290,31 @@ func _ready() -> void:
 	await _wait(3.3)
 	_ok(GameState.get_flag("finale"), "过渡结束 → 终局追逐开始")
 	var bride: RedBride = main.get("bride")
-	bride.active = false   # 测试准备：后续步骤固定鬼影状态（追逐行为单独验证）
+	# ---------------- 11b. 封门遭遇：沉默经过 → 应声 → 鬼影查声 ----------------
+	print("[11b 封门遭遇]")
+	var sealed: Interactable = wb.find_child("SealedDoor", true, false)
+	_ok(sealed != null, "封门存在")
+	player.global_position = Vector3(-5.0, 0.15, -11.5)
+	player.rotation.y = PI / 2.0   # 面西朝封门
+	player.set("_pitch", 0.0)
+	if cam != null:
+		cam.rotation.x = 0.0
+	await _wait(1.0)
+	_ok(GameState.get_flag("voice_encounter_played"), "终局经过封门 → 喊名遭遇触发")
+	# 沉默走开再回来（台词不重播）
+	player.global_position = Vector3(-4.0, 0.15, -11.5)
+	await _wait(0.5)
+	player.global_position = Vector3(-5.0, 0.15, -11.5)
+	await _wait(0.4)
+	# 按住 E 0.6 秒应一声
+	Input.action_press("interact")
+	await _wait(0.7)
+	Input.action_release("interact")
+	await _wait(0.2)
+	_ok(GameState.get_flag("voice_responded"), "按住 E 应声")
+	_ok(bride._investigating, "鬼影转向封门查声")
+	player.global_position = Vector3(-3.5, 0.15, -11.0)   # 退到转角遮挡
+	bride.active = false   # 测试准备：后续步骤固定鬼影状态
 
 	# ---------------- 12. 八卦锁（界面按钮操作 + 提交） ----------------
 	print("[12 八卦锁]")
@@ -288,6 +346,63 @@ func _ready() -> void:
 	if jade_pk != null:
 		jade_pk._do_interact(null)
 	_ok(GameState.has_item("jade_pendant"), "玉佩收入行囊")
+	_ok(GameState.objective.begins_with("朱砂笔已到手") or GameState.objective.begins_with("玉佩已寻回"),
+		"任务栏保留当前较靠后的有效目标（%s）" % GameState.objective)
+
+	# ---------------- 12b. 闺房门双向穿行（墙体切分修复验证） ----------------
+	print("[12b 闺房门双向]")
+	player.global_position = Vector3(9.6, 0.15, -2.0)
+	player.rotation.y = PI / 2.0   # 面西朝闺房门（1.6m 内）
+	player.set("_pitch", 0.0)
+	if cam != null:
+		cam.rotation.x = 0.0
+	var boudoor: Door = wb.find_child("BoudoirDoor", true, false)
+	await _wait(0.3)
+	_press_key(KEY_E)
+	await _wait(1.4)
+	_ok(boudoor._open, "闺房门开启")
+	Input.action_press("move_forward")
+	await _wait(1.5)
+	Input.action_release("move_forward")
+	_ok(player.global_position.x < 7.0, "从闺房穿出门洞进回廊 x=%.2f" % player.global_position.x)
+	player.rotation.y = -PI / 2.0   # 转身面东
+	await _wait(0.2)
+	Input.action_press("move_forward")
+	await _wait(1.5)
+	Input.action_release("move_forward")
+	_ok(player.global_position.x > 8.4, "从回廊返回闺房 x=%.2f" % player.global_position.x)
+
+	# ---------------- 12c. 作坊门双向穿行 ----------------
+	print("[12c 作坊门双向]")
+	player.global_position = Vector3(-9.6, 0.15, -2.0)
+	player.rotation.y = -PI / 2.0   # 面东朝作坊门（1.6m 内）
+	await _wait(0.3)
+	var wsdoor: Door = wb.find_child("WorkshopDoor", true, false)
+	await _wait(0.3)
+	var dbg_ray: RayCast3D = player.get("interact_ray")
+	dbg_ray.force_raycast_update()
+	print("  dbg aim=", player.get("_current_target"), " locked=", player.get("_input_locked"),
+		" paused=", get_tree().paused, " pos=", player.global_position)
+	_press_key(KEY_E)
+	await _wait(1.4)
+	print("  dbg after E open=", wsdoor._open)
+	_ok(wsdoor._open, "作坊门开启")
+	Input.action_press("move_forward")
+	await _wait(1.5)
+	Input.action_release("move_forward")
+	_ok(player.global_position.x > -7.0, "从作坊穿出门洞进回廊 x=%.2f" % player.global_position.x)
+	player.rotation.y = PI / 2.0   # 转身面西
+	player.global_position.z = -2.0   # 校回门洞中心线（门洞净宽 1.08m）
+	await _wait(0.2)
+	Input.action_press("move_forward")
+	await _wait(1.8)
+	Input.action_release("move_forward")
+	var space := player.get_world_3d().direct_space_state
+	var qf := PhysicsRayQueryParameters3D.create(player.global_position + Vector3(0, 0.9, 0),
+		player.global_position + Vector3(-0.8, 0.9, 0), 1)
+	var hf := space.intersect_ray(qf)
+	print("  dbg block ray=", hf.get("collider"), " pos=", hf.get("position"))
+	_ok(player.global_position.x < -9.0, "从回廊返回作坊 x=%.2f" % player.global_position.x)
 
 	# ---------------- 13. 抛灯与拾回 ----------------
 	print("[13 抛灯拾回]")
@@ -346,6 +461,13 @@ func _ready() -> void:
 	_ok(GameState.get_flag("ending_done"), "终局状态置位（夺门而逃）")
 	_ok(bride.active == false, "鬼影停止追逐")
 	_ok(main.get("endings_ui").get("_busy") == true, "结局演出开始（且仅一次）")
+	_press_key(KEY_TAB)
+	await _wait(0.3)
+	_ok(main.get("inventory_ui").visible == false, "结局期间 Tab 不打开行囊")
+	_ok(player.get("_input_locked") == true, "结局期间输入保持锁定")
+	_press_key(KEY_ESCAPE)
+	await _wait(0.3)
+	_ok(not main.get("pause_ui").visible, "结局播放中 Esc 不打开暂停菜单")
 
 	# ---------------- 16. 960×540 重开 + 真结局（玉佩归还） ----------------
 	print("[16 960×540 与真结局]")
@@ -460,6 +582,12 @@ func _find_pickup_item(item_id: String) -> Pickup:
 		if n is Pickup and n.item_id == item_id and _found == null:
 			_found = n)
 	return _found as Pickup
+
+func _click_mend_slot(slot: String) -> void:
+	var mend_ui: MendUI = main.get("mend_ui")
+	var btn: Button = mend_ui._view.find_child("Hot_" + slot, true, false)
+	_ok(btn != null, "热区按钮 Hot_%s 存在" % slot)
+	await _click_button(btn)
 
 func _has_collision(body: PhysicsBody3D) -> bool:
 	for c in body.get_children():

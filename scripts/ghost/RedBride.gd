@@ -22,6 +22,23 @@ var _model: Node3D
 var _glow: OmniLight3D
 var _lose_timer := 0.0
 var active := false
+var _investigating := false
+var _investigate_pos := Vector3.ZERO
+var _investigate_timer := 0.0
+
+func investigate_door(pos: Vector3, timeout: float = 4.0) -> void:
+	## 玩家应声后转向声源（封门）查声：沿现有可通行段接近，到达或超时恢复；
+	## 出现直接视线时现有追逐优先。回应只暴露门的位置，抓捕仍由距离与遮挡决定。
+	if not active:
+		return
+	if state == State.CHASE and _can_see_player():
+		return   # 直接视线：现有追逐优先，不转查声
+	_investigating = true
+	_investigate_pos = pos
+	_investigate_timer = timeout
+	if state != State.CHASE:
+		state = State.CHASE
+		_lose_timer = timeout
 
 func _ready() -> void:
 	add_to_group("red_bride")
@@ -191,9 +208,19 @@ func _physics_process(delta: float) -> void:
 			var sees := _can_see_player()
 			if sees or _hears_player():
 				_lose_timer = LOSE_TIME
-			else:
+			elif not _investigating:
 				_lose_timer -= delta
-			if sees:
+			if _investigating:
+				# 查声：直线可通则直走，否则沿巡逻段接近；到达/超时即恢复
+				_investigate_timer -= delta
+				if _segment_clear(_investigate_pos):
+					_move_toward(_investigate_pos, CHASE_SPEED * delta)
+				else:
+					_move_route(CHASE_SPEED * delta)
+				if global_position.distance_to(_investigate_pos) < 0.7 or _investigate_timer <= 0.0:
+					_investigating = false
+					_lose_timer = LOSE_TIME
+			elif sees:
 				_move_toward(p.global_position, CHASE_SPEED * delta)
 			elif _lose_timer > 0.0:
 				_chase_via_route(delta)

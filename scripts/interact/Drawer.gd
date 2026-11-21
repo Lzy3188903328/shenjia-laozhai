@@ -20,6 +20,10 @@ func _ready() -> void:
 	_anim = find_child("AnimationPlayer", true, false) as AnimationPlayer
 	prompt_text = "拉开"
 
+func set_anim(ap: AnimationPlayer) -> void:
+	## 显式绑定同实例的动画播放器（交互节点是模型根的子节点，子树内搜不到）
+	_anim = ap
+
 func set_locked(v: bool, prompt: String = "") -> void:
 	locked = v
 	if prompt != "":
@@ -39,10 +43,16 @@ func _do_interact(_player: Node3D) -> void:
 		AudioMgr.play("unlock_click", -10.0, 0.7)
 		return
 	_open = true
-	if _anim != null:
+	var has_anim := _anim != null and is_instance_valid(_anim) and _anim.has_animation("drawer_open")
+	if has_anim:
 		_anim.play("drawer_open")
 	AudioMgr.play_at("drawer_roll", global_position, -6.0)
-	await get_tree().create_timer(0.5).timeout
+	# 内容物在抽屉到位后生成；无动画时走补偿路径并告警定位资产
+	if has_anim:
+		await get_tree().create_timer(0.75).timeout
+	else:
+		push_warning("Drawer: 未找到 drawer_open 动画，走补偿生成路径（%s）" % name)
+		await get_tree().create_timer(0.5).timeout
 	if not is_instance_valid(self):
 		return
 	_spawn_contents()

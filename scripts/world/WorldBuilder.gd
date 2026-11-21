@@ -58,52 +58,58 @@ func _place_prop(prop_name: String, pos: Vector3, rot_y_deg: float = 0.0, parent
 
 ## 墙体：沿 a→b 放 kit 模块（含缺口），并生成碰撞长盒
 func _wall(a: Vector2, b: Vector2, gaps: Array = [], kit: String = "wall_brick", height: float = WALL_H, parent: Node = null) -> void:
+	## 墙体：视觉模块与碰撞统一由"实体区间"生成（修复实施文档 §一）
+	## 缺口换算为 [c-w/2, c+w/2] 并裁剪排序合并，取补集得到实体区间；
+	## 手动碰撞与视觉模块都只铺在实体区间内；墙模块自带的 GLB 碰撞停用，
+	## 由手动碰撞统一阻挡（门扇/门樘/门楣/柱子等独立交互体的碰撞不受影响）。
 	var dir := b - a
 	var total := dir.length()
 	if total < 0.05:
 		return
 	var yaw := atan2(-dir.y, dir.x)
 	var dnorm := dir / total
-	var cuts: Array = []
-	var cursor := 0.0
+	# 缺口 → 区间 → 排序合并 → 补集 = 实体区间
+	var spans: Array = []
 	for g: Dictionary in gaps:
-		var g0: float = clampf(g["c"] - g["w"] * 0.5, 0.0, total)
-		var g1: float = clampf(g["c"] + g["w"] * 0.5, 0.0, total)
-		if g0 > cursor:
-			cuts.append([cursor, g0])
-		cursor = g1
+		spans.append([clampf(g["c"] - g["w"] * 0.5, 0.0, total), clampf(g["c"] + g["w"] * 0.5, 0.0, total)])
+	spans.sort_custom(func(x, y): return x[0] < y[0])
+	var runs: Array = []
+	var cursor := 0.0
+	for s: Array in spans:
+		if s[0] > cursor:
+			runs.append([cursor, s[0]])
+		cursor = maxf(cursor, s[1])
 	if cursor < total:
-		cuts.append([cursor, total])
-	for seg: Array in cuts:
-		var seg_len: float = seg[1] - seg[0]
-		if seg_len < 0.05:
-			continue
-		var mid_t: float = (float(seg[0]) + float(seg[1])) * 0.5
-		var mid: Vector2 = a + dnorm * mid_t
+		runs.append([cursor, total])
+	runs = runs.filter(func(r: Array): return r[1] - r[0] > 0.05)
+	# 每个实体区间：手动碰撞长盒 + 视觉模块（≤4m，末段按实际长度缩放）
+	for r: Array in runs:
+		var run_start: float = r[0]
+		var run_end: float = r[1]
+		var run_len: float = run_end - run_start
+		var mid_t := (run_start + run_end) * 0.5
+		var mid := a + dnorm * mid_t
 		var body := StaticBody3D.new()
 		body.collision_layer = 1
 		var col := CollisionShape3D.new()
 		var shape := BoxShape3D.new()
-		shape.size = Vector3(seg_len, height, 0.28)
+		shape.size = Vector3(run_len, height, 0.28)
 		col.shape = shape
 		body.add_child(col)
 		(parent if parent != null else self).add_child(body)
 		body.position = Vector3(mid.x, height * 0.5, mid.y)
 		body.rotation.y = yaw
-	# 视觉模块（跨缺口的跳过）
-	var t := 0.0
-	while t < total - 0.01:
-		var seg_len := minf(4.0, total - t)
-		var seg_mid := t + seg_len * 0.5
-		var in_gap := false
-		for g: Dictionary in gaps:
-			if seg_mid > g["c"] - g["w"] * 0.5 - 0.01 and seg_mid < g["c"] + g["w"] * 0.5 + 0.01:
-				in_gap = true
-				break
-		if not in_gap:
+		var t := run_start
+		while t < run_end - 0.01:
+			var seg_len := minf(4.0, run_end - t)
+			var seg_mid := t + seg_len * 0.5
 			var pos := a + dnorm * seg_mid
-			_place_kit(kit, Vector3(pos.x, 0, pos.y), rad_to_deg(yaw), parent, Vector3(seg_len / 4.0, 1.0, 1.0))
-		t += 4.0
+			var inst := _place_kit(kit, Vector3(pos.x, 0, pos.y), rad_to_deg(yaw), parent, Vector3(seg_len / 4.0, 1.0, 1.0))
+			# 墙模块的 GLB 自带碰撞停用——阻挡由上面的手动长盒负责
+			for wall_body in inst.find_children("*", "StaticBody3D", true, false):
+				wall_body.collision_layer = 0
+				wall_body.collision_mask = 0
+			t += 4.0
 
 func _floor_rect(x0: float, z0: float, x1: float, z1: float, kit: String, parent: Node = null) -> void:
 	var cx := (x0 + x1) * 0.5
@@ -325,6 +331,7 @@ func _build_main_hall() -> void:
 	altar.add_child(drawer)
 	drawer.position = Vector3(0, 0.55, 0.3)
 	drawer.add_box_collision(Vector3(0.65, 0.35, 0.55))
+	drawer.set_anim(altar.find_child("AnimationPlayer", true, false) as AnimationPlayer)
 	drawer.set_locked(true, "暗格扣着铜簧——牌位似乎没摆对。")
 	GameState.puzzle_solved.connect(func(pid: String) -> void:
 		if pid == "tablets":
@@ -341,6 +348,10 @@ func _build_main_hall() -> void:
 	lb.rotation.y = PI
 	_place_prop("armchair", Vector3(-3.5, 0, -10.0), 70)
 	_place_prop("armchair", Vector3(3.5, 0, -10.0), -70)
+	# 封门（玩法扩展 §四）：西墙壁龛封门，「名莫应」遭遇用
+	var sealed := _spawn_interactable(load("res://scripts/interact/SealedDoor.gd"),
+		Vector3(-5.85, 0, -11.5), -90, Vector3(0.4, 2.3, 1.3))
+	sealed.name = "SealedDoor"
 	_candle(Vector3(-0.8, 0.92, -15.2))
 	_candle(Vector3(0.8, 0.92, -15.2))
 	# 侍立纸人 ×2
@@ -502,9 +513,14 @@ func _build_boudoir() -> void:
 	dresser.add_child(ddrawer)
 	ddrawer.position = Vector3(-0.2, 0.62, 0)
 	ddrawer.add_box_collision(Vector3(0.45, 0.3, 0.45))
+	ddrawer.set_anim(dresser.find_child("AnimationPlayer", true, false) as AnimationPlayer)
 	# 绣墩 / 杂物
 	_place_prop("chair_wood", Vector3(14.2, 0, 0.6), 200)
 	_place_prop("bronze_mirror", Vector3(15.3, 0.9, -0.35), 30)
+	# 压痕窗纸（玩法扩展 §三）：妆奁边压着的旧窗纸，侧照显纹
+	var wpaper := _spawn_interactable(load("res://scripts/interact/WindowPaper.gd"),
+		Vector3(14.6, 0.92, -0.45), 0, Vector3(0.4, 0.3, 0.4))
+	wpaper.name = "WindowPaper"
 	var l := _omni(Vector3(12, 2.3, -2), Color(0.85, 0.5, 0.28), 1.15, 7.0, "house_lights")
 	l.shadow_enabled = false
 
@@ -540,6 +556,14 @@ func _build_workshop() -> void:
 	# 铜铃
 	var bell := _place_prop("copper_bell", Vector3(-10.5, 1.7, 0.2))
 	bell.name = "RitualBell"
+	# 补扎替身侧桌（玩法扩展 §二）：待修男装胸架 + 翘起的红线
+	_place_prop("chair_wood", Vector3(-13.2, 0, 1.3), 0)
+	var mend_fig := _place_prop("paper_figure", Vector3(-13.2, 0.5, 1.3), 90)
+	mend_fig.scale = Vector3.ONE * 0.45
+	mend_fig.rotation_degrees = Vector3(-70, 90, 0)   # 平躺在侧桌上
+	var mend_chest := _spawn_interactable(load("res://scripts/interact/MendChest.gd"),
+		Vector3(-13.2, 0.85, 1.3), 0, Vector3(0.5, 0.4, 0.5))
+	mend_chest.name = "MendChest"
 	# 谜题四
 	paper_ritual = PaperRitual.new()
 	add_child(paper_ritual)
