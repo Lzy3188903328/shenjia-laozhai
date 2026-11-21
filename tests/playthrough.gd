@@ -20,6 +20,7 @@ func _ready() -> void:
 	add_child(main)
 	await get_tree().process_frame
 	GameState.new_game()
+	main.set("_game_started", true)   # 测试准备：视为已进入游戏（血书合上回调依赖此状态）
 	var wb: WorldBuilder = main.get("world_builder")
 	var tp: TabletPuzzle = wb.tablet_puzzle
 	var mr: MirrorRoom = wb.mirror_room
@@ -99,7 +100,7 @@ func _ready() -> void:
 	_ok(pr.phase == 2, "点睛完成 → 进入上香阶段")
 	var no_fire: String = ""
 	pr._incense_done.clear()
-	pr.light_incense("M")
+	pr.light_incense("Mid")
 	pr.light_incense("L")
 	pr.light_incense("R")
 	_ok(pr.phase == 3, "三炷香点燃（中→左→右）")
@@ -119,7 +120,8 @@ func _ready() -> void:
 	# ---------------- 终局：血书 → 怨气爆发 ----------------
 	print("[终局]")
 	GameState.add_doc("doc_11_blood_contract")
-	await get_tree().create_timer(3.6).timeout
+	(main.get("reader_ui") as ReaderUI).close()   # 玩家合上血书 → 3 秒过渡后开始追逐
+	await get_tree().create_timer(4.2).timeout
 	_ok(GameState.get_flag("finale"), "血书触发终局（怨气爆发）")
 	var bride: RedBride = main.get("bride")
 	_ok(bride.active, "红衣鬼影开始巡逻")

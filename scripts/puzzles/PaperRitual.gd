@@ -20,7 +20,7 @@ var burner: Node3D
 var bell_node: Node3D
 var _bell_anim: AnimationPlayer
 
-const INCENSE_ORDER := ["M", "L", "R"]
+const INCENSE_ORDER := ["Mid", "L", "R"]   # 与模型节点 IncenseMid/L/R 一致
 
 func _ready() -> void:
 	add_to_group("paper_ritual")
@@ -31,8 +31,8 @@ func setup(figure: Node3D, burner_node: Node3D, bell: Node3D) -> void:
 	bell_node = bell
 	face_mesh = figure_root.find_child("Face", true, false) as MeshInstance3D
 	_bell_anim = bell_node.find_child("AnimationPlayer", true, false) as AnimationPlayer
-	# 三个香头交互
-	for id in ["Mid", "L", "R"]:
+	# 三个香头交互（spot_id 与模型节点后缀一致：Mid/L/R）
+	for id in INCENSE_ORDER:
 		var stick := burner.find_child("Incense" + id, true, false)
 		if stick != null:
 			var inc := IncenseInteract.new()
@@ -40,8 +40,8 @@ func setup(figure: Node3D, burner_node: Node3D, bell: Node3D) -> void:
 			inc.spot_id = id
 			inc.name = "IncenseInteract" + id
 			stick.add_child(inc)
-			inc.add_box_collision(Vector3(0.09, 0.3, 0.09))
-	# 眼睛交互（挂在纸人头部两侧）
+			inc.add_box_collision(Vector3(0.05, 0.3, 0.09))
+	# 眼睛交互（挂在纸人头部两侧，凸出面部以避开躯干碰撞）
 	var head := figure_root.find_child("Head", true, false)
 	if head != null:
 		for side in ["L", "R"]:
@@ -50,13 +50,14 @@ func setup(figure: Node3D, burner_node: Node3D, bell: Node3D) -> void:
 			eye.spot_id = side
 			eye.name = "EyeInteract" + side
 			head.add_child(eye)
-			eye.position = Vector3(-0.055 if side == "L" else 0.055, 0.02, 0.13)
-			eye.add_box_collision(Vector3(0.09, 0.12, 0.09))
+			eye.position = Vector3(-0.055 if side == "L" else 0.055, 0.02, 0.20)
+			eye.add_box_collision(Vector3(0.05, 0.12, 0.09))
 	# 铜铃交互
 	var ring := BellInteract.new()
 	ring.ritual = self
 	bell_node.add_child(ring)
 	ring.add_box_collision(Vector3(0.22, 0.3, 0.22), Vector3(0, -0.05, 0))
+	_reset_incense_visuals()   # 初始所有香头未点燃
 
 func _toast(text: String) -> void:
 	var hud := get_tree().get_first_node_in_group("hud")
@@ -68,12 +69,21 @@ func _fail(msg: String) -> void:
 	_toast(msg)
 	match phase:
 		1: _eyes_done.clear()
-		2: _incense_done.clear()
+		2:
+			_incense_done.clear()
+			_reset_incense_visuals()   # 香头同步熄灭
 		3:
 			_bell_chosen = ""
 			_bell_rings = 0
 	# 民俗犯忌 → 轻惊吓
 	AudioMgr.play_at("whisper", figure_root.global_position, -12.0)
+
+func _reset_incense_visuals() -> void:
+	## 错误重置后，三根香头的燃点显示同步回未点燃状态
+	for id in INCENSE_ORDER:
+		var ember := burner.find_child("Ember" + id, true, false)
+		if ember != null:
+			ember.visible = false
 
 # ---------------------------------------------------------- ① 点睛
 func paint_eye(spot: String) -> String:
@@ -118,7 +128,7 @@ func light_incense(spot: String) -> String:
 		_fail("香序错了。中间为先，再左，再右。")
 		return ""
 	_incense_done.append(spot)
-	var ember := burner.find_child("Ember" + {"M": "Mid", "L": "L", "R": "R"}[spot], true, false)
+	var ember := burner.find_child("Ember" + spot, true, false)
 	if ember != null:
 		ember.visible = true
 	AudioMgr.play("lantern_relight", -12.0, 1.3)
@@ -186,8 +196,8 @@ class IncenseInteract extends Interactable:
 	func get_prompt() -> String:
 		if ritual.phase != 2:
 			return ""
-		var names := {"M": "中", "L": "左", "R": "右"}
-		return "点燃%s侧的香" % names[spot_id]
+		var names := {"Mid": "中", "L": "左", "R": "右"}
+		return "点燃%s香" % names[spot_id]
 
 	func _do_interact(_player: Node3D) -> void:
 		var msg := ritual.light_incense(spot_id)

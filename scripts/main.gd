@@ -140,6 +140,8 @@ func _start_game() -> void:
 	_game_started = true
 	GameState.new_game()
 	main_menu.hide_menu()
+	player.lock_input(false)   # 解除开场锁
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	var tw := create_tween()
 	tw.tween_method(func(v: float) -> void: effects.set_fade_black(v), 1.0, 0.0, 2.2)
 	AudioMgr.stop_ambient()
@@ -148,8 +150,18 @@ func _start_game() -> void:
 	hud.toast("雨越下越大。这封委托信，是三天前送到你铺子门口的。")
 
 func _on_letter_closed() -> void:
-	## 合上开场委托信后的方向提示
-	if not _game_started or GameState.get_flag("hint_courtyard"):
+	## 合上文档后：开场方向提示 / 血书读完后的终局过渡（顺序：合上→恢复行动→3s 后追逐）
+	if not _game_started:
+		return
+	if GameState.get_flag("finale_pending") and not GameState.get_flag("finale"):
+		GameState.set_flag("finale_pending", false)
+		# 此时阅读器已关闭、移动与鼠标已恢复
+		scares.run_scare_forced("flashback_fire", player.global_position)
+		hud.toast("血书上的手印是湿的——怨气开始苏醒。跑。")
+		await get_tree().create_timer(3.0).timeout
+		GameState.start_finale()
+		return
+	if GameState.get_flag("hint_courtyard"):
 		return
 	GameState.set_flag("hint_courtyard")
 	hud.toast("穿过天井，去正厅避雨——委托信上说，雨夜叩门自开。")
@@ -235,11 +247,8 @@ func _on_doc_read(doc_id: String) -> void:
 			effects.red_flash(1.4)
 			hud.toast("婚书上的「阿」字……你叫阿九。")
 		"doc_11_blood_contract":
-			# 终局启动：真相大白，怨气爆发
-			reader_ui.close()
-			scares.run_scare_forced("flashback_fire", player.global_position)
-			await get_tree().create_timer(3.0).timeout
-			GameState.start_finale()
+			# 首次拾取血书：先留在阅读器里读完；玩家合上后（_on_letter_closed）再启动过渡与追逐
+			GameState.set_flag("finale_pending")
 		"doc_10_blood_rules":
 			hud.toast("血字像是警告，又像是……留给你的生存法则。")
 
@@ -280,6 +289,8 @@ func _on_player_died(_reason: String) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not _game_started:
 		return
+	if player != null and player.get("_input_locked"):
+		return   # 主菜单/开场过渡/阅读器期间锁住全局 UI 快捷键
 	if reader_ui.visible or inventory_ui.visible or inspect_ui.visible or pause_ui.visible:
 		return
 	if bell_ui.visible:

@@ -8,6 +8,7 @@ var _root: Control
 
 func _ready() -> void:
 	layer = 100
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)   # 菜单期显示指针，点击开始后由 main 恢复捕获
 	_root = Control.new()
 	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(_root)

@@ -102,7 +102,7 @@ func _test_bagua_config() -> void:
 # ---------------------------------------------------------- 谜题四：仪式
 func _test_ritual_order() -> void:
 	print("[PaperRitual]")
-	_ok(PaperRitual.INCENSE_ORDER == ["M", "L", "R"], "香序：中→左→右")
+	_ok(PaperRitual.INCENSE_ORDER == ["Mid", "L", "R"], "香序：中→左→右（标识与节点一致）")
 
 # ---------------------------------------------------------- 场景构建
 func _test_world_build() -> void:

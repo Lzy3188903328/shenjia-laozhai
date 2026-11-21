@@ -1,7 +1,7 @@
 extends Node
 ## 交互回归测试（headless 可重复运行）：
-## 全程通过"正常入口"注入键盘/鼠标事件——菜单点击、E 开门、面板按钮、G 抛灯、
-## Tab 行囊、Esc 关信，而非直接调用谜题方法。
+## 全程通过"正常入口"注入键盘/鼠标事件——菜单点击、E 开门穿行、铜镜转动、
+## 点睛/香序/铜铃、血书时序、八卦锁、抛灯拾回、鬼影遮挡、双结局、960×540 适配。
 ## 运行：Godot --headless --path . res://tests/input_regression.tscn
 
 var _fails := 0
@@ -19,10 +19,14 @@ func _ok(cond: bool, label: String) -> void:
 func _ready() -> void:
 	get_window().size = Vector2i(1280, 720)   # headless 默认 64×64，先设定真实窗口尺寸
 	await get_tree().process_frame
+	await get_tree().process_frame
 	main = load("res://scenes/main/Main.tscn").instantiate()
 	add_child(main)
 	await get_tree().process_frame
 	await get_tree().process_frame
+	var wb: WorldBuilder = main.get("world_builder")
+	var player: CharacterBody3D = main.get("player")
+	var cam: Camera3D = player.get("camera")
 
 	# ---------------- 1. 主菜单点击开始 ----------------
 	print("[1 主菜单]")
@@ -34,9 +38,9 @@ func _ready() -> void:
 	await _wait(2.4)
 	var reader: ReaderUI = main.get("reader_ui")
 	_ok(reader.visible, "委托信自动打开")
-	var player: CharacterBody3D = main.get("player")
+	_ok(player.get("_input_locked") == true, "阅读委托信期间输入锁定（合信后解锁）")
 
-	# ---------------- 2. Esc 合信 → 方向提示 → WASD/鼠标 ----------------
+	# ---------------- 2. Esc 合信 → 提示 → WASD/鼠标 ----------------
 	print("[2 开场流程]")
 	_press_key(KEY_ESCAPE)
 	await _wait(0.2)
@@ -65,18 +69,15 @@ func _ready() -> void:
 	player.global_position = Vector3(0, 0.15, -7.0)
 	player.rotation.y = 0.0
 	player.set("_pitch", 0.0)
-	var cam: Camera3D = player.get("camera")
 	if cam != null:
 		cam.rotation.x = 0.0
-	var wb: WorldBuilder = main.get("world_builder")
 	var hall_door: Door = wb.find_child("HallSouthDoor", true, false)
-	_ok(hall_door != null, "正厅门存在")
 	await _wait(0.3)
 	_press_key(KEY_E)
 	await _wait(1.4)
 	_ok(hall_door._open, "E 后门脚本状态开启")
 	var leaf: Node3D = hall_door.get_parent()
-	_ok(leaf.rotation.y > 1.2, "门扇动画已播放（rotation=%.2f）" % leaf.rotation.y)
+	_ok(leaf.rotation.y > 1.2, "门扇向内开动画已播放（rotation=%.2f）" % leaf.rotation.y)
 	Input.action_press("move_forward")
 	await _wait(1.8)
 	Input.action_release("move_forward")
@@ -96,54 +97,108 @@ func _ready() -> void:
 	Input.action_release("move_forward")
 	_ok(player.global_position.z < -17.6, "穿过门洞进入祠堂 z=%.2f" % player.global_position.z)
 
-	# ---------------- 5. 八卦锁（界面按钮操作 + 提交） ----------------
-	print("[5 八卦锁]")
-	player.global_position = Vector3(14.2, 0.15, -1.0)
-	player.rotation.y = -PI / 2.0       # 面向东墙妆奁盒（盒子在玩家东侧）
-	player.set("_pitch", -0.85)
+	# ---------------- 5. 花厅铜镜：E 转动 → 显字 → 拾朱砂笔 ----------------
+	print("[5 花厅铜镜]")
+	var mr: MirrorRoom = wb.mirror_room
+	player.global_position = Vector3(9.0, 0.15, -12.0)
+	player.rotation.y = -PI / 2.0   # 面东朝 M1
+	player.set("_pitch", -0.41)
 	if cam != null:
-		cam.rotation.x = -0.85
+		cam.rotation.x = -0.41
+	await _wait(0.4)
+	_press_key(KEY_E)
+	await _wait(0.6)
+	_ok(mr.mirror_yaw[0] == 45.0, "E 转动 M1：角度 90→45")
+	_press_key(KEY_E)
+	await _wait(0.6)
+	_press_key(KEY_E)
+	await _wait(0.8)
+	_ok(mr.mirror_yaw[0] == -45.0, "M1 转到正确解 -45°")
+	_ok(mr._reveal_label.visible, "屏风显字「十九」")
+	_ok(GameState.get_flag("puzzle_mirror"), "铜镜谜题解开")
+	var pen := _find_pickup_item("cinnabar_pen")
+	_ok(pen != null, "朱砂笔在屏风后生成")
+	player.global_position = Vector3(7.4, 0.15, -9.3)
+	player.rotation.y = PI / 2.0    # 面西朝笔
+	player.set("_pitch", -0.83)
+	if cam != null:
+		cam.rotation.x = -0.83
 	await _wait(0.4)
 	_press_key(KEY_E)
 	await _wait(0.4)
-	var lock: BaguaLock = wb.bagua_lock
-	_ok(lock.visible, "E 打开八卦锁面板")
-	_ok(get_tree().paused, "面板暂停游戏")
-	# 逐位拨盘至手札目标（由初始本位 → 目标位）
-	for dir in lock.TARGET:
-		var a: int = lock.TRIGRAM_CYCLE.find(String(lock.STANDARD[dir]))
-		var b: int = lock.TRIGRAM_CYCLE.find(String(lock.TARGET[dir]))
-		var clicks := (b - a + 8) % 8
-		for i in clicks:
-			await _click_button(lock._sector_buttons[dir])
-	# 中心五行钮：金 → 水
-	var elem_clicks: int = (lock.ELEMENTS.find(BaguaLock.TARGET_ELEMENT) - lock.ELEMENTS.find("金") + 5) % 5
-	for i in elem_clicks:
-		await _click_button(lock._element_button)
-	var submit := _find_button(lock._panel, "推 锁 芯")
-	_ok(submit != null, "找到提交按钮")
-	await _click_button(submit)
-	await _wait(1.4)
-	_ok(GameState.get_flag("puzzle_bagua"), "八卦锁提交后解锁")
-	_ok(not lock.visible and not get_tree().paused, "面板延迟关闭并恢复游戏")
-	var jade := _find_pickup("jade_pendant")
-	_ok(jade != null, "妆奁盒产出玉佩奖励")
+	_ok(GameState.has_item("cinnabar_pen"), "E 拾取朱砂笔")
 
-	# ---------------- 6. 铜铃（错误时辰 → 正确三响 → 暗门） ----------------
-	print("[6 铜铃]")
-	var bell_ui: BellUI = main.get("bell_ui")
+	# ---------------- 6. 拾火折子 ----------------
+	print("[6 火折子]")
+	player.global_position = Vector3(7.5, 0.15, 4.6)
+	player.rotation.y = 0.0
+	player.set("_pitch", -1.05)
+	if cam != null:
+		cam.rotation.x = -1.05
+	await _wait(0.4)
+	_press_key(KEY_E)
+	await _wait(0.4)
+	_ok(GameState.has_item("fire_starter"), "E 拾取火折子")
+
+	# ---------------- 7. 点睛（左→右） ----------------
+	print("[7 点睛]")
 	var pr: PaperRitual = wb.paper_ritual
-	pr.phase = 3   # 测试前置：点睛/香序已由 playthrough 覆盖，此处直入第三步
+	player.global_position = Vector3(-10.445, 0.15, 0.3)
+	player.rotation.y = PI          # 面南朝纸人
+	player.set("_pitch", -0.18)
+	if cam != null:
+		cam.rotation.x = -0.18
+	await _wait(0.4)
+	_press_key(KEY_E)
+	await _wait(0.4)
+	_ok(pr._eyes_done == (["L"] as Array[String]), "E 点左眼")
+	player.global_position = Vector3(-10.555, 0.15, 0.3)
+	await _wait(0.4)
+	_press_key(KEY_E)
+	await _wait(0.4)
+	_ok(pr.phase == 2, "右眼点完 → 进入上香阶段")
+
+	# ---------------- 8. 上香：故意错一次 → 重置 → 中左右 ----------------
+	print("[8 上香]")
+	player.global_position = Vector3(-11.85, 0.15, -0.2)
+	player.rotation.y = PI
+	player.set("_pitch", -0.83)
+	if cam != null:
+		cam.rotation.x = -0.83
+	await _wait(0.4)
+	_press_key(KEY_E)   # 故意先点左香 → 香序错误
+	await _wait(0.4)
+	_ok(pr._incense_done.is_empty(), "香序错误 → 重置")
+	var burner := wb.find_child("RitualBurner", true, false)
+	_ok(burner.find_child("EmberMid", true, false).visible == false, "重置后香头回到未点燃状态")
+	player.global_position = Vector3(-11.8, 0.15, -0.2)
+	await _wait(0.4)
+	_press_key(KEY_E)
+	await _wait(0.3)
+	_ok(pr._incense_done == (["Mid"] as Array[String]), "点燃中香（Mid 标识一致）")
+	_ok(burner.find_child("EmberMid", true, false).visible, "中香香头发光")
+	player.global_position = Vector3(-11.85, 0.15, -0.2)
+	await _wait(0.4)
+	_press_key(KEY_E)
+	await _wait(0.3)
+	player.global_position = Vector3(-11.75, 0.15, -0.2)
+	await _wait(0.4)
+	_press_key(KEY_E)
+	await _wait(0.4)
+	_ok(pr.phase == 3, "三炷香齐（中→左→右）→ 进入铜铃阶段")
+
+	# ---------------- 9. 铜铃：错误时辰 → 正确三响 → 暗门通行 ----------------
+	print("[9 铜铃]")
+	var bell_ui: BellUI = main.get("bell_ui")
 	player.global_position = Vector3(-10.5, 0.15, -0.9)
 	player.rotation.y = PI
-	player.set("_pitch", -0.11)
+	player.set("_pitch", -0.03)
 	if cam != null:
-		cam.rotation.x = -0.11
+		cam.rotation.x = -0.03
 	await _wait(0.4)
 	_press_key(KEY_E)
 	await _wait(0.4)
 	_ok(bell_ui.visible, "E 打开铜铃面板")
-	# 错误时辰：面板反馈 + 重置，不关闭
 	var wrong_btn := _find_button(bell_ui._panel, "子时二刻")
 	await _click_button(wrong_btn)
 	var ring_btn := _find_button(bell_ui._panel, "敲 响（三声）")
@@ -151,7 +206,6 @@ func _ready() -> void:
 	await _wait(0.2)
 	_ok(bell_ui.visible, "错误时辰后面板保持打开")
 	_ok(pr._bell_rings == 0 and pr._bell_chosen == "", "错误时辰已重置")
-	# 正确时辰三响：一次打开面板内完成
 	var ok_btn := _find_button(bell_ui._panel, "子时三刻")
 	await _click_button(ok_btn)
 	await _click_button(ring_btn)
@@ -165,12 +219,12 @@ func _ready() -> void:
 	_ok(GameState.get_flag("puzzle_ritual"), "三响完成 → 仪式解开")
 	_ok(not bell_ui.visible and not get_tree().paused, "完成后面板关闭并恢复游戏")
 	_ok(wb.bookshelf_blocker == null or not is_instance_valid(wb.bookshelf_blocker), "书架障碍已移除")
-	await _wait(0.5)   # 等书架滑行动画（1.6s）完成
+	await _wait(0.5)
 	var shelf := wb.find_child("SecretShelf", true, false) as Node3D
 	_ok(shelf != null and shelf.position.z < -3.0, "书架已滑开让出门洞")
 
-	# ---------------- 7. 穿过暗门进密室 ----------------
-	print("[7 暗门通行]")
+	# ---------------- 10. 穿过暗门进密室 ----------------
+	print("[10 暗门通行]")
 	player.global_position = Vector3(-13.8, 0.15, -1.0)
 	player.rotation.y = PI / 2.0   # 面西
 	player.set("_pitch", 0.0)
@@ -182,32 +236,84 @@ func _ready() -> void:
 	Input.action_release("move_forward")
 	_ok(player.global_position.x < -16.5, "穿过暗门进入密室 x=%.2f" % player.global_position.x)
 
-	# ---------------- 8. 抛灯与拾回 ----------------
-	print("[8 抛灯拾回]")
+	# ---------------- 11. 血书时序：读完才追逐 ----------------
+	print("[11 血书时序]")
+	player.global_position = Vector3(-20, 0.15, -2.4)
+	player.rotation.y = 0.0
+	player.set("_pitch", -0.65)
+	if cam != null:
+		cam.rotation.x = -0.65
+	await _wait(0.4)
+	_press_key(KEY_E)
+	await _wait(0.5)
+	_ok(reader.visible, "E 拾取血书 → 阅读器打开")
+	await _wait(3.5)
+	_ok(not GameState.get_flag("finale"), "血书停留超 3 秒：追逐尚未开始")
+	_press_key(KEY_ESCAPE)
+	await _wait(0.3)
+	_ok(not reader.visible, "Esc 合上血书")
+	_ok(player.get("_input_locked") == false, "合上后恢复移动与视角")
+	await _wait(3.3)
+	_ok(GameState.get_flag("finale"), "过渡结束 → 终局追逐开始")
+	var bride: RedBride = main.get("bride")
+	bride.active = false   # 测试准备：后续步骤固定鬼影状态（追逐行为单独验证）
+
+	# ---------------- 12. 八卦锁（界面按钮操作 + 提交） ----------------
+	print("[12 八卦锁]")
+	var lock: BaguaLock = wb.bagua_lock
+	player.global_position = Vector3(14.2, 0.15, -1.0)
+	player.rotation.y = -PI / 2.0   # 面向东墙妆奁盒
+	player.set("_pitch", -0.85)
+	if cam != null:
+		cam.rotation.x = -0.85
+	await _wait(0.4)
+	_press_key(KEY_E)
+	await _wait(0.4)
+	_ok(lock.visible, "E 打开八卦锁面板")
+	for dir in lock.TARGET:
+		var a: int = lock.TRIGRAM_CYCLE.find(String(lock.STANDARD[dir]))
+		var b: int = lock.TRIGRAM_CYCLE.find(String(lock.TARGET[dir]))
+		for i in (b - a + 8) % 8:
+			await _click_button(lock._sector_buttons[dir])
+	var elem_clicks: int = (lock.ELEMENTS.find(BaguaLock.TARGET_ELEMENT) - lock.ELEMENTS.find("金") + 5) % 5
+	for i in elem_clicks:
+		await _click_button(lock._element_button)
+	var submit := _find_button(lock._panel, "推 锁 芯")
+	await _click_button(submit)
+	await _wait(1.4)
+	_ok(GameState.get_flag("puzzle_bagua"), "八卦锁提交后解锁")
+	_ok(not lock.visible and not get_tree().paused, "面板延迟关闭并恢复游戏")
+	var jade_pk := _find_pickup_item("jade_pendant")
+	_ok(jade_pk != null, "妆奁盒产出玉佩奖励")
+	if jade_pk != null:
+		jade_pk._do_interact(null)
+	_ok(GameState.has_item("jade_pendant"), "玉佩收入行囊")
+
+	# ---------------- 13. 抛灯与拾回 ----------------
+	print("[13 抛灯拾回]")
 	player.global_position = Vector3(2.5, 0.15, 3.0)
 	player.rotation.y = 0.0
 	await _wait(0.3)
 	_press_key(KEY_G)
 	await _wait(1.0)
-	var thrown := _find_pickup("hand_lantern_thrown")
+	var thrown := _find_pickup_item("hand_lantern_thrown")
 	_ok(thrown != null, "灯笼已抛出为可拾取对象")
-	_ok(thrown != null and thrown.get_child_count() > 0 and _has_collision(thrown), "抛出灯笼带交互碰撞")
+	_ok(thrown != null and _has_collision(thrown), "抛出灯笼带交互碰撞")
 	_ok(not player.get("_lantern_on"), "抛出后手持照明熄灭")
 	if thrown != null:
-		player.global_position = thrown.global_position + Vector3(0.9, 0.15, 0)
-		player.rotation.y = PI / 2.0    # 面西朝灯笼（灯笼在玩家西侧）
-		player.set("_pitch", -1.05)     # 俯视地上的灯笼
+		player.global_position = (thrown as Node3D).global_position + Vector3(0.9, 0.15, 0)
+		player.rotation.y = PI / 2.0    # 面西朝灯笼
+		player.set("_pitch", -1.05)
 		if cam != null:
 			cam.rotation.x = -1.05
 		await _wait(0.4)
 		_press_key(KEY_E)
 		await _wait(0.4)
 	_ok(player.get("_lantern_on"), "E 拾回并恢复手持照明")
-	_ok(_find_pickup("hand_lantern_thrown") == null, "场景中无残留灯笼对象")
+	_ok(_find_pickup_item("hand_lantern_thrown") == null, "场景中无残留灯笼对象")
 
-	# ---------------- 9. 鬼影：隔墙脱身 / 开阔被抓 ----------------
-	print("[9 鬼影追逐]")
-	var bride: RedBride = main.get("bride")
+	# ---------------- 14. 鬼影：隔墙脱身 / 开阔被抓 / 重生 ----------------
+	print("[14 鬼影追逐]")
 	bride.activate(PackedVector3Array([
 		Vector3(0, 0, 5), Vector3(0, 0, -6), Vector3(0, 0, -12),
 		Vector3(0, 0, -21), Vector3(-4, 0, 0), Vector3(4, 0, 0)]))
@@ -225,8 +331,24 @@ func _ready() -> void:
 		"开阔处被抓后正常重生到密室门口")
 	_ok(bride.active, "重生后追逐继续")
 
-	# ---------------- 10. 960×540 窗口适配 + 重开主菜单 ----------------
-	print("[10 窗口适配与重开]")
+	# ---------------- 15. 伪结局：终局南门（院内正面 E） ----------------
+	print("[15 伪结局 南门]")
+	player.global_position = Vector3(0, 0.15, 6.5)
+	player.rotation.y = PI            # 面南朝大门
+	player.set("_pitch", 0.0)
+	if cam != null:
+		cam.rotation.x = 0.0
+	var esc_door: Interactable = wb.find_child("EscapeDoor", true, false)
+	_ok(esc_door != null, "南门终局交互体存在（院内可命中）")
+	await _wait(0.4)
+	_press_key(KEY_E)
+	await _wait(0.5)
+	_ok(GameState.get_flag("ending_done"), "终局状态置位（夺门而逃）")
+	_ok(bride.active == false, "鬼影停止追逐")
+	_ok(main.get("endings_ui").get("_busy") == true, "结局演出开始（且仅一次）")
+
+	# ---------------- 16. 960×540 重开 + 真结局（玉佩归还） ----------------
+	print("[16 960×540 与真结局]")
 	get_window().size = Vector2i(960, 540)
 	await _wait(0.3)
 	var vp_size := get_viewport().get_visible_rect().size
@@ -250,7 +372,7 @@ func _ready() -> void:
 	_ok(pr_rect.position.x >= 0 and pr_rect.end.x <= vp_size.x and pr_rect.position.y >= -8
 		and pr_rect.end.y <= vp_size.y + 8, "信件面板在 960×540 内")
 	_press_key(KEY_ESCAPE)
-	await _wait(0.2)
+	await _wait(0.3)
 	_ok(not reader2.visible, "960×540 下合上委托信")
 	_press_key(KEY_TAB)
 	await _wait(0.3)
@@ -262,6 +384,24 @@ func _ready() -> void:
 	_press_key(KEY_TAB)
 	await _wait(0.3)
 	_ok(not inv.visible and not get_tree().paused, "行囊关闭并恢复游戏")
+	# 真结局：玉佩归还（测试准备：发放玉佩并进入终局阶段）
+	GameState.add_item("jade_pendant")
+	GameState.start_finale()
+	var player2: CharacterBody3D = main.get("player")
+	player2.global_position = Vector3(0, 0.15, 1.9)
+	player2.rotation.y = PI           # 面南朝玉佩台
+	player2.set("_pitch", -0.66)
+	var cam2: Camera3D = player2.get("camera")
+	if cam2 != null:
+		cam2.rotation.x = -0.66
+	var bride2: RedBride = main.get("bride")
+	bride2.active = true
+	await _wait(0.4)
+	_press_key(KEY_E)
+	await _wait(0.5)
+	_ok(GameState.get_flag("ending_done"), "真结局：玉佩归还触发")
+	_ok(not GameState.has_item("jade_pendant"), "玉佩已从行囊移除")
+	_ok(bride2.active == false, "真结局：鬼影停止追逐")
 	get_window().size = Vector2i(1280, 720)
 
 	print("INPUT REGRESSION RESULT: pass=%d fail=%d" % [_passes, _fails])
@@ -314,7 +454,7 @@ func _find_button(root: Node, text: String) -> BaseButton:
 
 var _found: Node = null
 
-func _find_pickup(item_id: String) -> Pickup:
+func _find_pickup_item(item_id: String) -> Pickup:
 	_found = null
 	_walk(self, func(n: Node) -> void:
 		if n is Pickup and n.item_id == item_id and _found == null:

@@ -300,7 +300,7 @@ func _build_corridors() -> void:
 	add_child(tz)
 	tz.position = Vector3(-6.9, 1.2, 1.5)
 	_place_prop("chair_wood", Vector3(7.0, 0, 4.0), 90)
-	_spawn_pickup("fire_starter", Vector3(7.0, 0.55, 4.0))
+	_spawn_pickup("fire_starter", Vector3(7.5, 0.0, 3.6))
 	_place_prop("candle", Vector3(-7.0, 0, -3.0))
 	var cl := _omni(Vector3(-7.0, 0.5, -3.0), Color(0.9, 0.55, 0.25), 0.8, 3.0, "house_lights")
 	cl.shadow_enabled = false
@@ -527,15 +527,15 @@ func _build_workshop() -> void:
 	_place_prop("bamboo_stack", Vector3(-15.0, 0, -4.8))
 	_place_prop("bamboo_stack", Vector3(-14.6, 0, 1.4), 40)
 	# 仪式纸人（点睛对象）——置于南墙侧，为北面悬挂的铜铃让出瞄准线
-	var figure := _place_prop("paper_figure", Vector3(-10.5, 0, 1.4), 15)
+	var figure := _place_prop("paper_figure", Vector3(-10.5, 0, 1.4), 180)
 	figure.add_to_group("paper_figures")
 	# 无眼纸人半成品
 	_place_prop("paper_figure", Vector3(-14.0, 0, -3.2), 100).add_to_group("paper_figures")
 	var small := _place_prop("paper_figure", Vector3(-13.0, 0, 1.2), 260)
 	small.scale = Vector3.ONE * 0.7
-	# 香炉
-	_place_prop("chair_wood", Vector3(-11.8, 0, 0.9), 90)
-	var burner := _place_prop("incense_burner", Vector3(-11.8, 0.46, 0.9))
+	# 香炉（置于地面，避免凳面碰撞挡住香头瞄准）
+	_place_prop("chair_wood", Vector3(-12.4, 0, 1.6), 90)
+	var burner := _place_prop("incense_burner", Vector3(-11.8, 0, 0.9))
 	burner.name = "RitualBurner"
 	# 铜铃
 	var bell := _place_prop("copper_bell", Vector3(-10.5, 1.7, 0.2))
@@ -627,7 +627,8 @@ func _build_south_gate() -> void:
 	plaque.add_child(lb)
 	lb.position = Vector3(0, 0, 0.035)
 	lb.rotation.y = PI
-	var esc := _spawn_interactable(load("res://scripts/world/EscapeDoor.gd"), Vector3(0, 1.0, 8.35), 0, Vector3(2.4, 2.2, 0.5))
+	# 终局交互体放在门扇的天井一侧（z 7.3..7.8）：院内瞄准南门时先于锁死的门扇命中
+	var esc := _spawn_interactable(load("res://scripts/world/EscapeDoor.gd"), Vector3(0, 1.0, 7.55), 0, Vector3(2.4, 2.2, 0.5))
 	esc.name = "EscapeDoor"
 	var gate := _spawn_door(Vector3(0, 0, 8.0), 180, "SouthGateDoor")
 	gate.set_locked(true)

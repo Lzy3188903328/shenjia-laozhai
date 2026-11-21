@@ -115,13 +115,17 @@ func _move_toward(target: Vector3, step: float) -> void:
 	_face_dir(dir)
 
 func _move_route(step: float) -> void:
-	## 沿墙安全路线走（路线相邻点之间均为开阔通路）
+	## 沿墙安全路线走；路线上遇到关着的门/墙体时换下一个巡逻点（门开后可恢复通行）
 	if waypoints.is_empty():
 		return
 	var target := waypoints[_wp_index]
 	var to_target := target - global_position
 	to_target.y = 0
 	if to_target.length() < 0.4:
+		_wp_index = (_wp_index + 1) % waypoints.size()
+		return
+	if not _segment_clear(target):
+		# 通路被实体挡住（如关闭的门）：换巡逻点，等待门开后再走这条边
 		_wp_index = (_wp_index + 1) % waypoints.size()
 		return
 	_move_toward(target, step)

@@ -180,7 +180,7 @@ def _paper_figure(name, h=1.68, mat_body="M_ClothWhite", mat_face="M_FaceNoEye",
         p.part("Hair", sphere(0.145 * s, 12), "M_Black", t=(0, 1.44 * s, -0.01), s=(1, 0.9, 1))
     p.anim("turn_head", "Head", "rotation",
            [(0.0, (0, 0, 0)), (0.8, (0, 92, 0))])
-    p.col((0, 0.8 * s, 0), (0.6, 1.55 * s, 0.6))
+    p.col((0, 0.8 * s, 0), (0.5, 1.55 * s, 0.4))
     return p
 
 def build_paper_figure():
@@ -311,7 +311,7 @@ def build_mirror_stand():
     p.part("Mirror", cylinder(0.26, 0.26, 0.02, 20), "M_BronzeMirror", t=(0, 1.05, 0), r=(90, 0, 0))
     p.part("Frame", annulus(0.30, 0.26, 20), "M_Brass", t=(0, 1.05, 0), r=(90, 0, 0))
     p.part("Knob", cylinder(0.03, 0.03, 0.05, 10), "M_Brass", t=(0, 0.98, -0.06))
-    p.col((0, 0.6, 0), (0.5, 1.3, 0.35))
+    p.col((0, 0.45, 0), (0.5, 0.9, 0.35))   # 只挡底座立柱，镜面交互盒(y~1.05)不被遮
     return p
 
 def build_incense_burner():

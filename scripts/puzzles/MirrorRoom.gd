@@ -35,13 +35,14 @@ func setup(mirrors: Array[Node3D], candle_pos: Vector3, screen_pos: Vector3) -> 
 	screen_point = screen_pos
 	_build_beam()
 	_build_reveal()
-	# 镜子交互
+	# 镜子交互（碰撞盒略凸出于镜面前方，保证射线选中且不与镜架碰撞冲突）
 	for i in mirror_nodes.size():
 		var mi := MirrorInteract.new()
 		mi.room = self
 		mi.index = i
 		mi.prompt_text = "转动铜镜"
 		mirror_nodes[i].add_child(mi)
+		mi.add_box_collision(Vector3(0.55, 0.55, 0.14), Vector3(0, 0.05, 0.12))
 
 func _build_beam() -> void:
 	_beam_im = ImmediateMesh.new()

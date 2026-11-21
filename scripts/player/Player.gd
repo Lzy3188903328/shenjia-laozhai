@@ -28,7 +28,7 @@ var _lantern_on := true
 var _lantern_thrown := false
 var _thrown_lantern: Node3D = null
 var _flicker_t := 0.0
-var _input_locked := false
+var _input_locked := true   # 主菜单/开场过渡期间锁定，由 main 在游戏开始后解锁
 var _base_head_y := 1.62
 var _bob_t := 0.0
 var _shake := 0.0
@@ -40,8 +40,7 @@ func _ready() -> void:
 	_build_body()
 	_build_lantern()
 	_build_ray()
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-	ScareMgr.register_player(self)
+	ScareMgr.register_player(self)   # 鼠标捕获由 main 在游戏开始/恢复时统一管理
 
 func _build_body() -> void:
 	collision_layer = 2
@@ -245,7 +244,7 @@ func _update_interact() -> void:
 				new_target = col
 				prompt = col.get_prompt()
 				icon = col.get_icon_type() if col.has_method("get_icon_type") else "hand"
-	if new_target != _current_target:
+	if new_target != _current_target or prompt != _current_prompt:
 		_current_target = new_target
 		_current_prompt = prompt
 		interact_target_changed.emit(prompt, icon)
@@ -256,6 +255,8 @@ func _try_interact() -> void:
 
 # ---------------------------------------------------------- 扔灯 / 拾回
 func _unhandled_key_input(event: InputEvent) -> void:
+	if _input_locked:
+		return
 	if event.is_action_pressed("throw_lantern") and not _lantern_thrown and _lantern_on:
 		_throw_lantern()
 
